@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lesson Authoring"
+  short_description: "Create goal-based lesson materials"
+  default_prompt: "Use $lesson-authoring to complete the assigned author-owned work unit for this approved lesson goal."

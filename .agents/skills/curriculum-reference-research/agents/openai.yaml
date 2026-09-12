@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curriculum Reference Research"
+  short_description: "Compare and verify curriculum sources"
+  default_prompt: "Use $curriculum-reference-research to compare this goal design with external curricula and authoritative evidence before authoring."

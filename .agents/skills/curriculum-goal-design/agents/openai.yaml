@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curriculum Goal Design"
+  short_description: "Design and sequence curriculum learning goals"
+  default_prompt: "Use $curriculum-goal-design to define and sequence learning goals for this curriculum change."

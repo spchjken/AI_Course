@@ -1,0 +1,4 @@
+interface:
+  display_name: "Learning Path Composition"
+  short_description: "Compose workshop and course learning paths"
+  default_prompt: "Use $learning-path-composition to map approved goals into this learning path."

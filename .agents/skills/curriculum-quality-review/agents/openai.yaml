@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curriculum Quality Review"
+  short_description: "Audit curriculum against quality gates"
+  default_prompt: "Use $curriculum-quality-review to audit this lesson against the repository quality gates."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pilot Feedback Analysis"
+  short_description: "Analyze pilot evidence for curriculum improvement"
+  default_prompt: "Use $pilot-feedback-analysis to analyze this pilot and recommend curriculum improvements."

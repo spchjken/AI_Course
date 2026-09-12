@@ -1,0 +1,4 @@
+interface:
+  display_name: "Assessment Design"
+  short_description: "Design learner assessment and feedback"
+  default_prompt: "Use $assessment-design to create assessment criteria for this learning goal."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow Orchestration"
+  short_description: "Dispatch and verify repository workflow agents"
+  default_prompt: "Use $workflow-orchestration to run a repository workflow with dynamic agent dispatch and evidence."

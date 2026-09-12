@@ -1,0 +1,4 @@
+interface:
+  display_name: "Learner Artifact Design"
+  short_description: "Design evidence-producing learner artifacts"
+  default_prompt: "Use $learner-artifact-design to design the learner artifact for this lesson."
