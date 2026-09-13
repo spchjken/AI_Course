@@ -84,8 +84,8 @@ Volatile claim reaches its recheck trigger
 
 ```text
 Harness operating evidence
-    → optimize-agent-harness-system (Placeholder)
-    → Design a governed change; do not execute yet
+    → optimize-agent-harness-system (Proposed)
+    → Run a human-approved controlled trial; do not auto-apply
 ```
 
 Thay đổi cục bộ trong bài học không cần đi qua `change-curriculum-architecture`. Chỉ chuyển sang quy trình đó khi phát hiện thực sự làm thay đổi ranh giới mục tiêu, quan hệ phụ thuộc, cam kết của chương trình hoặc nguồn chuẩn cấp cao hơn.
@@ -99,7 +99,7 @@ Thay đổi cục bộ trong bài học không cần đi qua `change-curriculum-
 | [`pilot-and-validate.md`](pilot-and-validate.md) | `Proposed` | Dạy thử bài học hoặc lộ trình đã đạt tối thiểu `Pilot-ready` và phân tích bằng chứng thực tế. | Hồ sơ dạy thử ẩn danh, phân tích nguyên nhân, quyết định của chủ sở hữu, trạng thái chất lượng có phạm vi và bàn giao sửa đổi. |
 | [`change-curriculum-architecture.md`](change-curriculum-architecture.md) | `Proposed` *(đã chạy thử; chờ quyết định)* | Thay đổi mục tiêu, quan hệ phụ thuộc, cam kết hoặc ranh giới cấp giáo trình. | Quyết định được ghi, nguồn chuẩn được đồng bộ, ảnh hưởng được kiểm định và chuyển tới quy trình sở hữu. |
 | [`refresh-volatile-content.md`](refresh-volatile-content.md) | `Proposed` | Rà soát khẳng định phụ thuộc công cụ, API, mô hình, giá, quyền hạn hoặc chính sách. | Hàng đợi dẫn xuất, sổ bằng chứng cập nhật, bản đồ ảnh hưởng, cờ chặn an toàn và bàn giao tới quy trình sở hữu. |
-| [`optimize-agent-harness-system.md`](optimize-agent-harness-system.md) | `Placeholder` | Định khung cải tiến hệ thống hướng dẫn, điều phối và kiểm chứng tác nhân dựa trên bằng chứng vận hành. | Ranh giới, bằng chứng tối thiểu và điều kiện thiết kế trước khi có thể đề xuất chạy thử. |
+| [`optimize-agent-harness-system.md`](optimize-agent-harness-system.md) | `Proposed` | Điều tra và chạy thử có kiểm soát cải tiến hệ thống hướng dẫn, điều phối và kiểm chứng tác nhân dựa trên bằng chứng vận hành. | Thay đổi được kiểm định quản trị, có rollback và chỉ áp dụng sau `Ratify` của Chủ sở hữu. |
 
 ## Ranh giới trách nhiệm
 
@@ -125,7 +125,7 @@ Thay đổi cục bộ trong bài học không cần đi qua `change-curriculum-
 
 ### Tối ưu hệ thống harness tác nhân
 
-`optimize-agent-harness-system` hiện chỉ là khung `Placeholder` cho việc cải tiến `AGENTS.md`, rules, skills, workflows, giao thức phân công và tài sản vận hành. Nó không chạy tối ưu, không tự thay nguồn chuẩn và không sở hữu thay đổi nội dung hoặc kiến trúc giáo trình.
+`optimize-agent-harness-system` là workflow `Proposed` cho việc cải tiến `AGENTS.md`, rules, skills, workflows, giao thức phân công và tài sản vận hành. Nó chỉ chạy thử khi Chủ sở hữu cho phép, không tự thay nguồn chuẩn và không sở hữu thay đổi nội dung hoặc kiến trúc giáo trình.
 
 ## Quy tắc bàn giao chung
 
