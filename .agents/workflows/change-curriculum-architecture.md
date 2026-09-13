@@ -64,6 +64,8 @@ Dùng khi thay đổi làm đổi ý nghĩa, ranh giới hoặc quan hệ của 
 ```text
 TRIGGER
   ↓
+CAPTURE GIT BASELINE → CREATE DEDICATED RUN BRANCH/WORKTREE
+  ↓
 INTAKE AND CLASSIFICATION
   ├── Local lesson issue ─────────────→ complete-goal-lessons
   ├── Learning-run issue ─────────────→ compose-learning-run
@@ -81,11 +83,17 @@ INTAKE AND CLASSIFICATION
           ├── Revise → DESIGN ALTERNATIVES
           └── Approve
                   ↓
-              APPLY CANONICAL CHANGES → MIGRATE DEPENDENT REFERENCES
+              APPLY PROVISIONAL CHANGES ON RUN BRANCH → MIGRATE DEPENDENT REFERENCES
                   ↓
               INDEPENDENT VERIFICATION
-                  ├── Fail → Repair or rollback
-                  └── Pass
+                  ├── Finding → DISPOSITION
+                  │                  ├── Accept → Repair → Re-review
+                  │                  ├── Dispute → Evidence response/adjudication
+                  │                  └── Semantic dispute → HUMAN DECISION GATE
+                  ├── Fail → Repair, escalate or rollback
+                  └── Pass → HUMAN RATIFICATION
+                          ↓
+                      INTEGRATE APPROVED COMMITS
                           ↓
                       INVALIDATE STALE EVIDENCE
                           ↓
@@ -93,11 +101,15 @@ INTAKE AND CLASSIFICATION
 ```
 
 ```text
-Queued → Triaged → Diagnosed → Designed → Awaiting decision
+Queued → Baseline captured → Triaged → Diagnosed → Designed → Awaiting decision
                                              ├── Rejected → Closed
                                              ├── Revision requested → Designed
-                                             └── Approved → Applied → Verified → Closed
-                                                                    └── Failed → Repair or Rolled back
+                                             └── Approved → Provisionally applied → Under review
+                                                                                   ├── Finding disputed → Awaiting adjudication
+                                                                                   ├── Failed → Repair or Rolled back
+                                                                                   └── Verified → Awaiting ratification
+                                                                                                             ├── Rejected → Rolled back
+                                                                                                             └── Ratified → Integrated → Closed
 ```
 
 ## 4. Đầu vào, trách nhiệm chuẩn bị và đầu ra
@@ -112,8 +124,9 @@ Queued → Triaged → Diagnosed → Designed → Awaiting decision
 | Bằng chứng hiện có | Bên đưa ra phát hiện | Gắn bằng chứng với mệnh đề nó hỗ trợ; ghi rõ phần chưa có bằng chứng |
 | Nguồn chuẩn nền | Kho dự án hiện hành | Định vị và đọc kế hoạch chương trình, kiến trúc nội dung và bản đồ chương trình |
 | Bên có thẩm quyền quyết định | Người dùng hoặc chủ sở hữu giáo trình | Xác nhận ai có quyền chấp thuận nếu lượt thực thi có thể đổi ngữ nghĩa |
+| Căn Git và nhánh đích | Kho Git hiện hành | Ghi commit nền, nhánh đích, trạng thái worktree và tạo nhánh hoặc worktree riêng cho lượt chạy trước khi sửa nguồn chuẩn |
 
-Chỉ bốn nhóm trên là điều kiện tiếp nhận. Chưa cần biết đầy đủ mọi tệp chịu ảnh hưởng để bắt đầu giai đoạn A.
+Chỉ năm nhóm trên là điều kiện tiếp nhận. Chưa cần biết đầy đủ mọi tệp chịu ảnh hưởng để bắt đầu giai đoạn A.
 
 ### 4.2. Đầu vào do Điều phối viên tập hợp
 
@@ -157,26 +170,56 @@ Không được dùng việc “chưa biết toàn bộ phạm vi ảnh hưởng
 | Đầu ra | Bên tạo hoặc cập nhật | Bên nghiệm thu |
 |---|---|---|
 | Hồ sơ quyết định trong `.agents/decisions/YYYY-MM-DD-<slug>.md` | Điều phối viên tổng hợp; Chủ sở hữu giáo trình xác nhận quyết định | Chủ sở hữu giáo trình |
+| `git-baseline.md` trong hồ sơ lượt chạy | Điều phối viên | Người thực hiện đối chiếu trước G; Người kiểm định đối chiếu tại H |
 | Đồ thị phụ thuộc trước/sau | Người thiết kế và Người phân tích ảnh hưởng | Người kiểm định độc lập |
 | Bản đồ ảnh hưởng, kế hoạch chuyển đổi và hoàn tác | Người phân tích ảnh hưởng | Chủ sở hữu giáo trình tại giai đoạn F |
 | Nguồn chuẩn đã cập nhật sau chấp thuận | Người thực hiện | Người kiểm định độc lập |
+| `review-findings.md` | Người kiểm định độc lập | Điều phối viên kiểm tra tính đầy đủ; không sửa phán quyết của reviewer |
+| `finding-disposition.md` | Người thực hiện phản hồi; Điều phối viên ghi đường xử lý; Chủ sở hữu quyết định tranh chấp ngữ nghĩa | Người kiểm định xác nhận finding đã được hiểu đúng |
 | Báo cáo kiểm định | Người kiểm định độc lập | Theo cổng chất lượng hiện hành |
 | Danh sách bằng chứng hoặc trạng thái bị mất hiệu lực | Điều phối viên dựa trên bản đồ ảnh hưởng đã kiểm định | Người kiểm định độc lập |
 | Bản bàn giao tới các quy trình tiếp theo | Điều phối viên | Bên tiếp nhận xác nhận đủ điều kiện bắt đầu |
 
 Hồ sơ quyết định lưu lý do và thẩm quyền, không thay nguồn chuẩn. Quyết định giữ nguyên cũng phải được ghi nếu đã qua phân tích đáng kể.
 
+### 4.6. Cổng căn Git và cô lập lượt chạy
+
+Cổng này chạy trước giai đoạn A và phải đạt trước khi tạo hoặc sửa bất kỳ nguồn chuẩn nào. Hồ sơ vận hành có thể được tạo để ghi lý do dừng, nhưng không được dùng việc đã tạo hồ sơ làm lý do bỏ qua cổng.
+
+1. Xác định kho Git, nhánh đích dự kiến, commit `HEAD` và trạng thái worktree. Ghi thông tin cần thiết vào `.agents/workflow-runs/<run-id>/git-baseline.md`; không lưu bí mật hoặc dữ liệu không liên quan.
+2. Tạo nhánh hoặc worktree riêng từ đúng commit nền, mặc định dùng tên `codex/<run-id>`. Không áp dụng thay đổi kiến trúc trực tiếp lên nhánh mặc định hoặc nhánh đích.
+3. Nếu worktree hiện tại có thay đổi chưa commit, không tự stash, commit, di chuyển hay hoàn tác chúng. Ưu tiên tạo worktree riêng từ commit nền. Nếu không thể cô lập an toàn, ghi `Baseline not verified` và dừng trước khi sửa nguồn chuẩn.
+4. Sau giai đoạn E và ngay trước G, xác nhận mọi tệp mang nhãn `Update` vẫn khớp commit nền hoặc trạng thái đã được Chủ sở hữu chấp thuận. Nếu có drift, dừng, cập nhật phân tích ảnh hưởng và xin lại quyết định; không tự rebase hoặc ghi đè.
+5. Mỗi lần áp dụng ở G và mỗi vòng sửa sau H phải nằm trong một commit có phạm vi tường minh trên nhánh lượt chạy. Ghi mã commit, danh sách tệp và finding liên quan vào manifest; không gộp thay đổi ngoài phạm vi.
+6. Chỉ tích hợp các commit của lượt chạy vào nhánh đích sau khi H đạt `Pass` cho phạm vi bắt buộc và Chủ sở hữu đã phê chuẩn cuối cùng. Trước thời điểm đó, nội dung trên nhánh lượt chạy là `Provisionally applied`, không phải nguồn chuẩn hiện hành.
+7. Khi từ chối trước tích hợp, giữ nhánh và hồ sơ đủ lâu để kiểm toán; không cần sửa nhánh đích. Khi lỗi được phát hiện sau tích hợp, hoàn tác bằng commit mới đảo đúng các commit của lượt chạy. Không dùng `reset --hard`, hoàn tác rộng hoặc xóa lịch sử.
+
+`git-baseline.md` tối thiểu phải có:
+
+```text
+Repository: <absolute repository path>
+Target branch: <branch>
+Baseline commit: <full SHA>
+Run branch/worktree: <name and path>
+Worktree state: <clean | isolated from listed unrelated changes>
+Potentially affected files: <preliminary list or pending until E>
+Baseline status: <Verified | Not verified>
+Recorded by and time: <identity and timestamp>
+```
+
+Thiếu Git, không xác định được commit nền, không tạo được vùng làm việc riêng hoặc không chứng minh được tệp cần sửa chưa bị ghi đè đều là điều kiện dừng. Kế hoạch inverse hunk chỉ là lớp dự phòng kiểm toán, không thay thế căn Git.
+
 ## 5. Vai trò và quyền hạn
 
 | Vai trò | Trách nhiệm | Không được làm |
 |---|---|---|
-| Điều phối viên | Phân loại, khóa phạm vi, quản lý trạng thái và bàn giao | Tự phê duyệt thay đổi ngữ nghĩa |
+| Điều phối viên | Phân loại, khóa phạm vi, quản lý trạng thái, phân xử thủ tục và bàn giao | Tự phê duyệt thay đổi ngữ nghĩa hoặc mặc định reviewer đúng khi finding bị tranh chấp |
 | Người phân tích | Chẩn đoán và kiểm tra phương án nhỏ hơn | Biến sở thích thành dữ kiện |
 | Người nghiên cứu | Kiểm chứng tiền đề thực tế khi cần | Quyết định thay người dùng |
 | Người thiết kế | Tạo phương án, hợp đồng mục tiêu và đồ thị | Sửa bài học chi tiết |
-| Người thực hiện | Áp dụng đúng phương án trong danh sách tệp cho phép | Mở rộng phạm vi khi đang sửa |
-| Người kiểm định | Kiểm tra độc lập cấu trúc, ý nghĩa và ảnh hưởng | Tự nghiệm thu phần mình vừa viết |
-| Chủ sở hữu giáo trình | Chấp thuận, từ chối hoặc yêu cầu sửa | — |
+| Người thực hiện | Áp dụng đúng phương án; phản hồi từng finding bằng bằng chứng trước khi sửa | Mở rộng phạm vi khi đang sửa hoặc sửa chỉ vì reviewer đề xuất |
+| Người kiểm định | Kiểm tra độc lập cấu trúc, ý nghĩa và ảnh hưởng; trả lời phản biện đối với finding của mình | Tự nghiệm thu phần mình vừa viết hoặc quyết định thay Chủ sở hữu về đánh đổi sản phẩm |
+| Chủ sở hữu giáo trình | Chấp thuận, từ chối, yêu cầu sửa, phân xử tranh chấp ngữ nghĩa và phê chuẩn cuối trước tích hợp | — |
 
 ### 5.1. Mô hình điều phối tác nhân
 
@@ -227,6 +270,7 @@ Spawn verification: required before the first delegated work unit in an unverifi
 
 **Chủ trì:** Điều phối viên
 
+0. Xác nhận cổng căn Git ở mục 4.6 đạt `Verified`; nếu không, chỉ ghi hồ sơ dừng và không sửa nguồn chuẩn.
 1. Viết phát hiện thành mệnh đề có thể kiểm tra: hiện trạng, kết quả mong muốn và chênh lệch.
 2. Gắn thao tác `add`, `split`, `merge`, `reorder`, `rename`, `retire` hoặc `clarify`.
 3. Áp dụng phép thử kích hoạt; phân loại chế độ thực thi.
@@ -309,7 +353,7 @@ Không sửa nguồn chuẩn trước cổng này, trừ đồng bộ nguồn ch
 **Chủ trì:** Người thực hiện  
 **Kỹ năng:** `$curriculum-goal-design`
 
-Trước khi sửa, ghi danh sách tệp và trạng thái có thể khôi phục. Áp dụng theo thứ tự quyền lực:
+Trước khi sửa, đối chiếu commit nền, nhánh/worktree lượt chạy, danh sách tệp và trạng thái có thể khôi phục. Mọi thay đổi ở giai đoạn này là tạm áp dụng trên nhánh lượt chạy; không sửa trực tiếp nhánh đích. Áp dụng theo thứ tự quyền lực:
 
 1. `AI-native-builder-curriculum-plan.md` nếu cam kết chương trình đổi.
 2. `curriculum-content-architecture.md`.
@@ -318,7 +362,7 @@ Trước khi sửa, ghi danh sách tệp và trạng thái có thể khôi phụ
 5. Tham chiếu trong chương trình dạy.
 6. Tài nguyên dùng chung, kỹ năng hoặc quy trình nếu nằm trong phạm vi đã duyệt.
 
-Không viết bài học; không đánh lại số hàng loạt; giữ mã `gNN` nếu danh tính không đổi; mục tiêu mới dùng mã chưa sử dụng tiếp theo; không sửa ngoài danh sách đã duyệt; không mở rộng ý nghĩa khi đồng bộ câu chữ.
+Không viết bài học; không đánh lại số hàng loạt; giữ mã `gNN` nếu danh tính không đổi; mục tiêu mới dùng mã chưa sử dụng tiếp theo; không sửa ngoài danh sách đã duyệt; không mở rộng ý nghĩa khi đồng bộ câu chữ. Sau khi kiểm tra cục bộ, tạo commit triển khai có phạm vi tường minh và ghi mã commit vào manifest trước khi mở H.
 
 **Điều kiện kết thúc:** phương án được áp dụng trọn vẹn và phần chênh lệch chỉ nằm trong phạm vi cho phép.
 
@@ -327,20 +371,46 @@ Không viết bài học; không đánh lại số hàng loạt; giữ mã `gNN`
 **Chủ trì:** Người kiểm định không phải người thực hiện duy nhất  
 **Kỹ năng:** `$curriculum-quality-review`
 
-Chạy ba lớp kiểm tra ở mục 7. Lỗi triển khai được sửa trong phạm vi đã duyệt rồi kiểm định lại. Nếu cần đổi ý nghĩa, quay về F. Nếu không thể khôi phục an toàn, hoàn tác.
+#### H.1 — Lập finding
 
-**Điều kiện kết thúc:** `Pass`, hoặc đã hoàn tác và ghi lý do. `Not verified` tại cổng bắt buộc không được coi là đạt.
+Người kiểm định chạy ba lớp kiểm tra ở mục 7 và ghi từng finding vào `review-findings.md`. Mỗi finding phải có mã ổn định, mức độ, mệnh đề có thể kiểm tra, bằng chứng tệp/phần, hệ quả, phân loại sơ bộ `implementation`, `semantic`, `scope` hoặc `evidence`, cùng phép kiểm tra sẽ chứng minh nó đã được giải quyết. Khuyến nghị sửa của reviewer không tự động trở thành lệnh sửa.
+
+#### H.2 — Phản hồi và phân xử
+
+Người thực hiện phản hồi từng finding trong `finding-disposition.md` bằng đúng một trạng thái: `Accept`, `Dispute`, `Need evidence`, `Out of scope` hoặc `Requires human decision`, kèm lập luận và bằng chứng. Điều phối viên kiểm tra đủ trường và định tuyến:
+
+- `Accept` đối với lỗi triển khai trong phạm vi đã duyệt → trả về đúng người/tác nhân sở hữu để sửa.
+- `Dispute` hoặc `Need evidence` → reviewer trả lời một lần bằng cách giữ, thu hẹp hoặc rút finding; không được chỉ lặp lại kết luận.
+- Tranh chấp dữ kiện còn lại → bổ sung bằng chứng hoặc dùng một reviewer độc lập thứ hai làm bên phân xử bằng chứng. Nếu vẫn chưa đủ, ghi `Not verified`.
+- Finding làm đổi ý nghĩa, phạm vi, danh sách tệp hoặc đánh đổi sản phẩm → `Requires human decision` và quay về F. Điều phối viên chỉ quyết định đường xử lý, không quyết định nội dung thay Chủ sở hữu.
+- `Out of scope` → ghi quy trình nhận bàn giao và lý do; không sửa trong lượt này.
+
+Không giao sửa khi finding chưa có disposition. Không yêu cầu hai tác nhân tiếp tục tranh luận cho tới khi tự thống nhất.
+
+#### H.3 — Sửa và kiểm định lại
+
+Mỗi vòng sửa phải liên kết `finding ID → commit sửa → expected evidence`. Reviewer ban đầu được ưu tiên dùng lại để kiểm định chính bộ finding của mình; lượt ban đầu của reviewer vẫn phải độc lập với người tạo/sửa. Chỉ dùng reviewer mới khi reviewer ban đầu không khả dụng hoặc cần phân xử độc lập, và phải truyền đầy đủ finding cùng disposition đã lưu trong tệp.
+
+Giới hạn tối đa hai vòng sửa cho cùng một bộ finding. Sau hai vòng vẫn còn cùng lỗi chặn hoặc tranh chấp, chuyển `Awaiting adjudication` cho Chủ sở hữu với các mệnh đề đối lập và bằng chứng hai phía; không tiếp tục sửa tự động.
+
+#### H.4 — Phê chuẩn cuối
+
+Sau khi các cổng bắt buộc đạt `Pass`, Chủ sở hữu chọn `Ratify`, `Revise` hoặc `Reject`. Chỉ `Ratify` mới cho phép tích hợp các commit của nhánh lượt chạy vào nhánh đích. `Revise` quay lại giai đoạn phù hợp; `Reject` giữ nhánh đích nguyên trạng nếu chưa tích hợp, hoặc kích hoạt hoàn tác có phạm vi nếu đã tích hợp do lỗi vận hành.
+
+**Điều kiện kết thúc:** kiểm định đạt `Pass` và đã `Ratify`, hoặc đã hoàn tác/từ chối và ghi lý do. `Not verified` tại cổng bắt buộc không được coi là đạt; thiếu phê chuẩn cuối không được chuyển sang tích hợp.
 
 ### Giai đoạn I — Làm mất hiệu lực và bàn giao
 
 **Chủ trì:** Điều phối viên
 
-1. Đánh dấu bằng chứng, kết quả kiểm định và trạng thái không còn đúng.
-2. Chỉ làm mất hiệu lực phần có đường ảnh hưởng cụ thể, không hạ trạng thái hàng loạt.
-3. Ghi công việc tiếp theo, chủ sở hữu, đầu vào và điều kiện kết thúc.
-4. Bàn giao bài học cho `complete-goal-lessons`, chương trình dạy cho `compose-learning-run`, và phần khác cho quy trình sở hữu.
-5. Đối chiếu sổ đăng ký tác nhân với đầu ra, trạng thái và bằng chứng kiểm định độc lập.
-6. Đóng hồ sơ quyết định và hồ sơ thực thi.
+1. Sau `Ratify`, xác nhận nhánh đích chưa lệch khỏi căn tích hợp đã được kiểm tra. Nếu có drift ảnh hưởng phạm vi, dừng và kiểm định lại phần giao nhau; không tự ghi đè.
+2. Tích hợp đúng các commit đã được phê chuẩn từ nhánh lượt chạy vào nhánh đích và ghi mã commit kết quả. Không đưa finding bị từ chối, commit ngoài phạm vi hoặc thay đổi chưa kiểm định vào cùng lượt.
+3. Đánh dấu bằng chứng, kết quả kiểm định và trạng thái không còn đúng.
+4. Chỉ làm mất hiệu lực phần có đường ảnh hưởng cụ thể, không hạ trạng thái hàng loạt.
+5. Ghi công việc tiếp theo, chủ sở hữu, đầu vào và điều kiện kết thúc.
+6. Bàn giao bài học cho `complete-goal-lessons`, chương trình dạy cho `compose-learning-run`, và phần khác cho quy trình sở hữu.
+7. Đối chiếu sổ đăng ký tác nhân với căn Git, commit triển khai, finding, disposition, phê chuẩn cuối, commit tích hợp và bằng chứng kiểm định độc lập.
+8. Đóng hồ sơ quyết định và hồ sơ thực thi. Không tự xóa nhánh/worktree của lượt chạy; việc dọn dẹp là hành động riêng sau khi xác nhận không còn cần cho kiểm toán.
 
 **Điều kiện kết thúc:** không còn tham chiếu mồ côi; phần mất hiệu lực có chủ sở hữu; lượt sau không cần dựa vào hội thoại.
 
@@ -353,6 +423,8 @@ Chạy ba lớp kiểm tra ở mục 7. Lỗi triển khai được sửa trong 
 - [ ] Dữ kiện, suy luận và sở thích được phân biệt.
 - [ ] Đã xác định người có quyền quyết định.
 - [ ] Có danh sách tệp và cách hoàn tác.
+- [ ] Căn Git, nhánh đích và nhánh/worktree lượt chạy đã được ghi và xác minh.
+- [ ] Các tệp dự kiến sửa không chứa thay đổi chưa được phép hoặc đã được cô lập an toàn.
 - [ ] Thay đổi ngữ nghĩa đã được chấp thuận tường minh.
 
 ### 7.2. Cấu trúc và tính nhất quán
@@ -386,13 +458,17 @@ Program promise
 
 Mỗi mắt xích phải có vị trí nguồn. Thiếu nội dung là lỗi cần sửa; thiếu quyền truy cập phải ghi `Not verified`, phạm vi kiểm tra lại và người có thể cung cấp dữ liệu.
 
+Kết quả kiểm định kiến trúc phải tách khỏi trạng thái trưởng thành của bài học hoặc lộ trình. Thiếu bằng chứng dạy thử được ghi `Out of scope` hoặc giới hạn bằng chứng, trừ khi chính thay đổi kiến trúc đưa ra một khẳng định hiệu quả thực nghiệm cần dạy thử để chấp nhận. Không hạ kết quả kiến trúc thành `Needs revision` chỉ vì chưa có pilot; cũng không suy diễn `Pass` kiến trúc thành `Pilot-ready`, `Release-ready` hoặc `Validated`.
+
 ## 8. Hoàn tác và xử lý thất bại
 
-- Chỉ hoàn tác phần chênh lệch do lượt này sở hữu; không dùng thao tác phá hủy rộng.
-- Lỗi triển khai được sửa trong phương án đã duyệt rồi chạy lại phép kiểm tra chịu ảnh hưởng.
-- Nếu cần thay đổi ngữ nghĩa mới, dừng và quay lại cổng quyết định.
-- Nếu không thể khôi phục an toàn, trở về trạng thái đã ghi trước giai đoạn G và tạo hồ sơ sự cố.
-- Sau hoàn tác, trạng thái là `Rolled back`, không phải `Verified`.
+- Trước tích hợp, nhánh đích phải còn nguyên; từ chối hoặc lỗi hệ thống không yêu cầu hoàn tác nhánh đích. Giữ nhánh lượt chạy và đánh dấu `Rejected` hoặc `Failed` để điều tra.
+- Sau tích hợp, chỉ hoàn tác phần chênh lệch do các commit đã ghi của lượt này sở hữu. Tạo commit đảo có phạm vi trên một nhánh sửa chữa; không dùng thao tác phá hủy rộng, `reset --hard` hoặc xóa lịch sử.
+- Trước khi hoàn tác, xác nhận commit đích, danh sách tệp và phần giao với thay đổi đến sau. Nếu có xung đột hoặc nguy cơ ghi đè thay đổi khác, dừng và yêu cầu quyết định.
+- Lỗi triển khai chỉ được sửa sau disposition `Accept`, trong phương án đã duyệt, rồi chạy lại phép kiểm tra chịu ảnh hưởng.
+- Nếu cần thay đổi ngữ nghĩa mới hoặc finding còn tranh chấp, dừng và quay lại cổng quyết định; không dùng rollback như cách né phân xử.
+- Nếu căn Git hoặc commit triển khai không kiểm chứng được, ghi sự cố và không tuyên bố đã khôi phục. Inverse hunk chỉ được dùng như bằng chứng hỗ trợ sau khi đối chiếu với Git.
+- Sau hoàn tác, trạng thái là `Rolled back`, không phải `Verified`; hồ sơ quyết định, review và Git không bị xóa.
 
 ## 9. Hợp đồng giao việc cho tác nhân AI nhẹ
 
@@ -403,13 +479,16 @@ Role: <Orchestrator | Analyst | Researcher | Designer | Implementer | Reviewer>
 Mode: <Canonical synchronization | Architecture change>
 Operation: <add | split | merge | reorder | rename | retire | clarify>
 Current phase: <A | B | C | D | E | G | H | I>
+Baseline commit: <full SHA>
+Run branch/worktree: <name and path>
 Allowed files: <explicit file list>
 Canonical inputs: <required source files>
 Required skills: <skill names or None>
 Required outputs: <artifacts and exact locations>
-Decision status: <Not required | Awaiting approval | Approved>
-Stop conditions: <missing authority, scope expansion, semantic ambiguity, failed gate>
-Do not: <author lesson content, renumber stable IDs, mutate before approval, expand scope>
+Decision status: <Not required | Awaiting approval | Approved | Awaiting adjudication | Ratified | Rejected>
+Finding IDs and disposition: <IDs and current status or None>
+Stop conditions: <missing authority, unverified baseline, target drift, scope expansion, semantic ambiguity, disputed finding, failed gate>
+Do not: <author lesson content, renumber stable IDs, mutate before approval, edit target branch before ratification, auto-accept reviewer findings, expand scope>
 ```
 
 | Giai đoạn | Vai trò | Kỹ năng |
@@ -429,12 +508,15 @@ Tác nhân không tự chuyển giai đoạn. Nó trả về đầu ra, phép ki
 ## 10. Điều kiện đóng quy trình
 
 1. Quyết định thay đổi hoặc giữ nguyên đã được ghi.
-2. Nguồn chuẩn nhất quán theo đúng thứ tự quyền lực.
-3. Không còn lỗi chặn trong đồ thị và đường truy vết sản phẩm trung gian.
-4. Tham chiếu đã cập nhật hoặc có bản bàn giao với chủ sở hữu rõ ràng.
-5. Bằng chứng và trạng thái cũ bị ảnh hưởng đã được làm mất hiệu lực có chọn lọc.
-6. Kiểm định độc lập đạt `Pass` cho phạm vi thay đổi.
-7. Công việc nội dung hoặc chương trình dạy đã được chuyển tới quy trình sở hữu.
-8. Nếu đã phân công tác nhân con, sổ thực thi đạt mục 8 của `agent-dispatch-protocol.md`; việc sinh tác nhân và tính độc lập không còn `Not verified`.
+2. `git-baseline.md` xác minh được commit nền, nhánh đích và vùng làm việc riêng; mọi commit triển khai, sửa và tích hợp đều truy vết được.
+3. Mọi finding có disposition, bằng chứng phản hồi và kết quả kiểm định lại; không còn finding bị tranh chấp chưa được Chủ sở hữu quyết định.
+4. Chủ sở hữu đã ghi `Ratify` trước tích hợp, hoặc đã ghi `Reject`/`Rolled back` và không để thay đổi thử nghiệm trên nhánh đích.
+5. Nguồn chuẩn trên nhánh đích nhất quán theo đúng thứ tự quyền lực.
+6. Không còn lỗi chặn trong đồ thị và đường truy vết sản phẩm trung gian.
+7. Tham chiếu đã cập nhật hoặc có bản bàn giao với chủ sở hữu rõ ràng.
+8. Bằng chứng và trạng thái cũ bị ảnh hưởng đã được làm mất hiệu lực có chọn lọc.
+9. Kiểm định độc lập đạt `Pass` cho phạm vi thay đổi; giới hạn pilot được ghi riêng, không trộn với phán quyết kiến trúc.
+10. Công việc nội dung hoặc chương trình dạy đã được chuyển tới quy trình sở hữu.
+11. Nếu đã phân công tác nhân con, sổ thực thi đạt mục 8 của `agent-dispatch-protocol.md`; việc sinh tác nhân và tính độc lập không còn `Not verified`.
 
 Quy trình này chỉ xác nhận tính nhất quán và khả năng bàn giao của kiến trúc; nó không chứng minh hiệu quả thực tế và không được cấp `Validated`.
