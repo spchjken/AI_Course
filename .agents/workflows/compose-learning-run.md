@@ -74,19 +74,19 @@ INTAKE AND MODE SELECTION
                   ↓
               OWNER LOCAL CHECKS
                   ↓
-              CROSS-FILE DETERMINISTIC CHECKS
-                  ↓
-              INDEPENDENT REVIEW
-                  ├── Fail → Repair → DETERMINISTIC CHECKS → INDEPENDENT REVIEW
+               CROSS-FILE DETERMINISTIC CHECKS
+                   ↓
+               INDEPENDENT REVIEW
+                  ├── Finding → Disposition/adjudication → bounded repair → checks → review
                   └── Pass → HANDOFF TO pilot-and-validate → CLOSE
 ```
 
 ```text
 Queued → Preflight → Contracted → Mapped → Scheduled → Readiness checked
                                                           ├── Early composition or eligibility unmet → Planning package closed
-                                                          └── Delivery eligible → Authored → Deterministically checked → Reviewed
-                                                                                  ├── Pass → Closed
-                                                                                  └── Fail → Repair → Deterministically checked
+                                                           └── Delivery eligible → Authored → Deterministically checked → Reviewed
+                                                                                   ├── Pass → Closed
+                                                                                   └── Finding → Disposition/adjudication → Repair or Awaiting adjudication
 
 Any active state ──→ Awaiting decision ──→ return to the affected state
 Any active state ──→ Architecture handoff → change-curriculum-architecture → Close
@@ -161,6 +161,7 @@ ROOT ORCHESTRATOR: A, deterministic integration, and I
   ├── Readiness agent: F
   ├── Run author: G
   └── Independent review agent: H
+      └── Evidence adjudicator: only for material disputed findings
 ```
 
 - Nên giữ cùng một tác nhân cho B đến E vì các giai đoạn dùng chung mô hình lời hứa, đồ thị và tải thời gian.
@@ -293,8 +294,10 @@ Mỗi bên phải ghi vị trí lỗi hoặc kết quả kiểm tra vào hồ s�
 1. Xác nhận các phép kiểm tra xác định ở mục 8 đã được đúng chủ sở hữu chạy trước H, có vị trí lỗi/kết quả và vẫn áp dụng cho phiên bản tệp hiện tại.
 2. Kiểm định trực tiếp nguồn chuẩn, bộ tệp lộ trình và bằng chứng; không nhận kết luận tự đánh giá làm bằng chứng đủ.
 3. Ghi cổng, điểm số, bằng chứng, giới hạn truy cập và kết luận vào `review.md`.
-4. Nếu thất bại, trả đúng phát hiện về đơn vị sở hữu. Điểm kiểm tra thiếu ánh xạ đánh giá cấp lộ trình trả về E để gọi `$assessment-design`; nếu chỉ thiếu chỉ dẫn điều phối cho một điểm kiểm tra đã có tiêu chí, trả về G; nếu thiếu đánh giá của chính một `gNN`, trả về `complete-goal-lessons`. Người kiểm định không dùng `$assessment-design` để tự sửa. Một chu kỳ sửa chỉ được đổi các tệp và vấn đề đã nêu; thay đổi lời hứa hoặc kiến trúc phải quay lại quy trình sở hữu.
-5. Sau hai chu kỳ sửa vẫn kẹt cùng một vấn đề, chuyển `Awaiting decision` cùng phương án và bằng chứng; không tự hạ chuẩn để đóng lượt.
+4. Với finding `Major`, hard gate `Fail`/`Not verified`, hoặc finding có thể đổi lời hứa, phạm vi hay bàn giao, áp dụng mục 6.4 của [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md). `review.md` giữ finding; `finding-disposition.md` trong hồ sơ lượt chạy giữ phản hồi và kết quả phân xử. Trong workflow này, Người kiểm tra mức sẵn sàng là phía thứ ba của đánh giá `Out of scope`, miễn không sở hữu tệp bị finding và độc lập với reviewer.
+5. Chỉ finding `Accept` thuộc lỗi triển khai trong phạm vi đã khóa mới trả về đúng đơn vị sở hữu để sửa. Điểm kiểm tra thiếu ánh xạ đánh giá cấp lộ trình trả về E để gọi `$assessment-design`; nếu chỉ thiếu chỉ dẫn điều phối cho một điểm kiểm tra đã có tiêu chí, trả về G; nếu thiếu đánh giá của chính một `gNN`, trả về `complete-goal-lessons`. Người kiểm định không dùng `$assessment-design` để tự sửa. Một chu kỳ sửa chỉ được đổi các tệp và vấn đề đã nêu; thay đổi lời hứa hoặc kiến trúc phải quay lại quy trình sở hữu.
+6. Reviewer đầu chỉ kiểm định lại finding `Accept` cục bộ. Finding từng `Dispute`, `Need evidence` hoặc bị thu hẹp trọng yếu cần reviewer mới xác nhận theo dossier của mục 6.4. `Not verified` chỉ được ghi khi đã cạn đường kiểm tra; nó khóa việc cấp `Pilot-ready`/`Release-ready` và chuyển `Awaiting adjudication` cho Chủ sở hữu, trong khi phần việc độc lập có thể tiếp tục.
+7. Sau hai chu kỳ sửa vẫn kẹt cùng một vấn đề, chuyển `Awaiting adjudication` cùng dossier, phương án và bằng chứng; không tự hạ chuẩn để đóng lượt.
 
 **Điều kiện kết thúc:** kiểm định độc lập `Pass`, hoặc có bản ghi chặn rõ ràng.
 
@@ -378,13 +381,13 @@ Người kiểm định lần theo từng đường của sơ đồ. Thiếu n�
 Mỗi đơn vị công việc chỉ có một vai trò chính, một giai đoạn và danh sách tệp tường minh:
 
 ```text
-Role: <Orchestrator | Path designer | Readiness reviewer | Run author | Independent reviewer>
+Role: <Orchestrator | Path designer | Readiness reviewer | Run author | Independent reviewer | Evidence adjudicator>
 Mode: <Early composition | Delivery packaging>
 Current phase: <A | B | C | D | E | F | G | H | I>
 Allowed files: <explicit file list>
 Canonical inputs: <required source files>
 Required skills: <skill names or None>
-Required outputs: <artifacts and exact locations>
+Required outputs: <artifacts and exact locations; finding disposition/adjudication when applicable>
 Decision status: <Not required | Awaiting decision | Confirmed>
 Stop conditions: <missing input, scope expansion, time conflict, failed gate>
 Do not: <change goal boundaries, duplicate lesson content, self-approve, exceed maturity ceiling>
@@ -398,6 +401,7 @@ Do not: <change goal boundaries, duplicate lesson content, self-approve, exceed 
 | F | Người kiểm tra mức sẵn sàng | Không; đối chiếu chỉ đọc theo `review.md` và quy tắc chất lượng |
 | G | Người soạn lộ trình | `$learning-path-composition` |
 | H | Người kiểm định độc lập | `$curriculum-quality-review` |
+| H khi có tranh chấp dữ kiện | Người phân xử bằng chứng độc lập | Đọc dossier theo `agent-dispatch-protocol.md` 6.4–6.5 |
 | I | Điều phối viên | Không; chỉ ghi trạng thái và bàn giao |
 
 Tác nhân không tự chuyển giai đoạn. Nó trả về đầu ra, phép kiểm tra, điểm chưa xác minh và lý do dừng để Điều phối viên quyết định bước tiếp theo.

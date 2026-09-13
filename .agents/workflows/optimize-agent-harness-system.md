@@ -64,11 +64,12 @@ Chuỗi trên chỉ là khung thiết kế, không phải các bước được 
 - Bằng chứng runtime nào được thu, lưu ở đâu, và giới hạn riêng tư hoặc an toàn của nó là gì?
 - Cách chạy thử có kiểm soát, so sánh với đường cơ sở và hoàn tác thay đổi sẽ được xác định ra sao?
 - Ai có thẩm quyền chấp thuận, và kiểm định quản trị độc lập diễn ra ở cổng nào?
+- Finding của kiểm định được phản biện, phân xử và ghi `Not verified` theo mục 6.4 của `agent-dispatch-protocol.md` như thế nào; vai trò nào là phía thứ ba cho đánh giá `Out of scope`?
 - Một thay đổi ảnh hưởng nhiều rules, skills hoặc workflows sẽ có kế hoạch di trú và kiểm chứng chéo thế nào?
 - Ranh giới định tuyến tới `change-curriculum-architecture`, `complete-goal-lessons` và các quy trình nội dung khác được ghi nhận thế nào?
 
 ## Bàn giao khi khung được hoàn thiện
 
-Một phiên bản `Proposed` trong tương lai phải nêu rõ đầu vào/đầu ra, các cổng quyết định của con người, chủ sở hữu tệp, bằng chứng kiểm thử, điều kiện rollback và kiểm định độc lập. Khi thay đổi quy tắc, phải có hồ sơ trong `.agents/decisions/`, đánh giá phạm vi ảnh hưởng và kiểm định quản trị độc lập theo `AGENTS.md`. Khi thay đổi kỹ năng, phải dùng quy trình tạo/cập nhật kỹ năng của kho và chạy kiểm tra tương ứng. Khi thay đổi workflow, phải đồng bộ danh mục, trạng thái và các ranh giới trách nhiệm bị ảnh hưởng.
+Một phiên bản `Proposed` trong tương lai phải nêu rõ đầu vào/đầu ra, các cổng quyết định của con người, chủ sở hữu tệp, bằng chứng kiểm thử, điều kiện rollback và kiểm định độc lập. Nếu kiểm định tạo finding trọng yếu, nó phải kế thừa mục 6.4 của `agent-dispatch-protocol.md`, không quay về mô hình reviewer đưa verdict một chiều. Khi thay đổi quy tắc, phải có hồ sơ trong `.agents/decisions/`, đánh giá phạm vi ảnh hưởng và kiểm định quản trị độc lập theo `AGENTS.md`. Khi thay đổi kỹ năng, phải dùng quy trình tạo/cập nhật kỹ năng của kho và chạy kiểm tra tương ứng. Khi thay đổi workflow, phải đồng bộ danh mục, trạng thái và các ranh giới trách nhiệm bị ảnh hưởng.
 
 Không được bổ sung các giai đoạn thực thi hoặc chạy thử quy trình này cho tới khi người sở hữu chấp thuận phiên bản `Proposed`.

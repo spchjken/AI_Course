@@ -86,11 +86,12 @@ INTAKE AND CLASSIFICATION
               APPLY PROVISIONAL CHANGES ON RUN BRANCH → MIGRATE DEPENDENT REFERENCES
                   ↓
               INDEPENDENT VERIFICATION
-                  ├── Finding → DISPOSITION
-                  │                  ├── Accept → Repair → Re-review
-                  │                  ├── Dispute → Evidence response/adjudication
-                  │                  └── Semantic dispute → HUMAN DECISION GATE
-                  ├── Fail → Repair, escalate or rollback
+                  ├── Finding → DISPOSITION AND ADJUDICATION
+                  │                  ├── Accept → bounded repair → re-review
+                  │                  ├── Dispute → evidence response → independent adjudication
+                  │                  ├── Out of scope → two-of-three confirmation → handoff
+                  │                  └── Semantic/Not verified → HUMAN DECISION GATE
+                  ├── Failed accepted repair → repair, escalate or rollback
                   └── Pass → HUMAN RATIFICATION
                           ↓
                       INTEGRATE APPROVED COMMITS
@@ -105,7 +106,8 @@ Queued → Baseline captured → Triaged → Diagnosed → Designed → Awaiting
                                              ├── Rejected → Closed
                                              ├── Revision requested → Designed
                                              └── Approved → Provisionally applied → Under review
-                                                                                   ├── Finding disputed → Awaiting adjudication
+                                                                                  ├── Finding disputed → Awaiting adjudication
+                                                                                   ├── Finding not verified → Awaiting adjudication
                                                                                    ├── Failed → Repair or Rolled back
                                                                                    └── Verified → Awaiting ratification
                                                                                                              ├── Rejected → Rolled back
@@ -175,7 +177,7 @@ Không được dùng việc “chưa biết toàn bộ phạm vi ảnh hưởng
 | Bản đồ ảnh hưởng, kế hoạch chuyển đổi và hoàn tác | Người phân tích ảnh hưởng | Chủ sở hữu giáo trình tại giai đoạn F |
 | Nguồn chuẩn đã cập nhật sau chấp thuận | Người thực hiện | Người kiểm định độc lập |
 | `review-findings.md` | Người kiểm định độc lập | Điều phối viên kiểm tra tính đầy đủ; không sửa phán quyết của reviewer |
-| `finding-disposition.md` | Người thực hiện phản hồi; Điều phối viên ghi đường xử lý; Chủ sở hữu quyết định tranh chấp ngữ nghĩa | Người kiểm định xác nhận finding đã được hiểu đúng |
+| `finding-disposition.md` | Người thực hiện phản hồi; Điều phối viên ghi đường xử lý; Người phân xử bằng chứng ghi kết quả dữ kiện khi cần; Chủ sở hữu quyết định tranh chấp ngữ nghĩa hoặc `Not verified` | Reviewer hoặc Người phân xử xác nhận finding đã được hiểu đúng |
 | Báo cáo kiểm định | Người kiểm định độc lập | Theo cổng chất lượng hiện hành |
 | Danh sách bằng chứng hoặc trạng thái bị mất hiệu lực | Điều phối viên dựa trên bản đồ ảnh hưởng đã kiểm định | Người kiểm định độc lập |
 | Bản bàn giao tới các quy trình tiếp theo | Điều phối viên | Bên tiếp nhận xác nhận đủ điều kiện bắt đầu |
@@ -234,6 +236,7 @@ ROOT ORCHESTRATOR
   ├── Human owner: F
   ├── Implementation agent: G
   ├── Independent review agent: H
+  ├── Evidence adjudicator: H.2 only when required
   └── ROOT ORCHESTRATOR: A and I
 ```
 
@@ -377,21 +380,17 @@ Người kiểm định chạy ba lớp kiểm tra ở mục 7 và ghi từng fi
 
 #### H.2 — Phản hồi và phân xử
 
-Người thực hiện phản hồi từng finding trong `finding-disposition.md` bằng đúng một trạng thái: `Accept`, `Dispute`, `Need evidence`, `Out of scope` hoặc `Requires human decision`, kèm lập luận và bằng chứng. Điều phối viên kiểm tra đủ trường và định tuyến:
+Áp dụng đầy đủ mục 6.4 của [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md). Trong workflow này, Người phân tích ảnh hưởng là phía thứ ba của biểu quyết `Out of scope`; `High`/`Critical`, hoặc finding bị reviewer phản đối việc coi là ngoài phạm vi, luôn chuyển sang `Awaiting adjudication` thay vì bị đa số bỏ qua.
 
-- `Accept` đối với lỗi triển khai trong phạm vi đã duyệt → trả về đúng người/tác nhân sở hữu để sửa.
-- `Dispute` hoặc `Need evidence` → reviewer trả lời một lần bằng cách giữ, thu hẹp hoặc rút finding; không được chỉ lặp lại kết luận.
-- Tranh chấp dữ kiện còn lại → bổ sung bằng chứng hoặc dùng một reviewer độc lập thứ hai làm bên phân xử bằng chứng. Nếu vẫn chưa đủ, ghi `Not verified`.
-- Finding làm đổi ý nghĩa, phạm vi, danh sách tệp hoặc đánh đổi sản phẩm → `Requires human decision` và quay về F. Điều phối viên chỉ quyết định đường xử lý, không quyết định nội dung thay Chủ sở hữu.
-- `Out of scope` → ghi quy trình nhận bàn giao và lý do; không sửa trong lượt này.
+Người thực hiện phản hồi từng finding trong `finding-disposition.md`; reviewer chỉ được giữ, thu hẹp hoặc rút finding một lần trước khi một Người phân xử bằng chứng độc lập nhận dossier. `Not verified` chỉ được ghi sau khi thỏa toàn bộ điều kiện “đã cạn đường kiểm tra” của giao thức. Nó tạo `Awaiting adjudication`, thông báo Chủ sở hữu, khóa tích hợp và mọi thay đổi phụ thuộc; các đơn vị thực sự độc lập vẫn có thể tiếp tục trên nhánh lượt chạy.
 
-Không giao sửa khi finding chưa có disposition. Không yêu cầu hai tác nhân tiếp tục tranh luận cho tới khi tự thống nhất.
+Finding làm đổi ý nghĩa, phạm vi, danh sách tệp hoặc đánh đổi sản phẩm phải dùng `Requires human decision` và quay về F. Điều phối viên chỉ quyết định đường xử lý, không quyết định nội dung thay Chủ sở hữu. Không giao sửa khi finding chưa có disposition; không yêu cầu hai tác nhân tiếp tục tranh luận cho tới khi tự thống nhất.
 
 #### H.3 — Sửa và kiểm định lại
 
-Mỗi vòng sửa phải liên kết `finding ID → commit sửa → expected evidence`. Reviewer ban đầu được ưu tiên dùng lại để kiểm định chính bộ finding của mình; lượt ban đầu của reviewer vẫn phải độc lập với người tạo/sửa. Chỉ dùng reviewer mới khi reviewer ban đầu không khả dụng hoặc cần phân xử độc lập, và phải truyền đầy đủ finding cùng disposition đã lưu trong tệp.
+Mỗi vòng sửa phải liên kết `finding ID → commit sửa → expected evidence`. Reviewer đầu chỉ được dùng lại cho finding `Accept` thuộc lỗi triển khai cục bộ. Finding từng `Dispute`, `Need evidence`, bị thu hẹp/rút ở mức trọng yếu hoặc ảnh hưởng nguồn chuẩn phải có lượt review mới xác nhận kết quả cuối, theo dossier và ranh giới độc lập ở mục 6.4 của `agent-dispatch-protocol.md`.
 
-Giới hạn tối đa hai vòng sửa cho cùng một bộ finding. Sau hai vòng vẫn còn cùng lỗi chặn hoặc tranh chấp, chuyển `Awaiting adjudication` cho Chủ sở hữu với các mệnh đề đối lập và bằng chứng hai phía; không tiếp tục sửa tự động.
+Giới hạn tối đa hai vòng sửa cho cùng một bộ finding. Sau hai vòng vẫn còn cùng lỗi chặn, tranh chấp hoặc `Not verified` trọng yếu, chuyển `Awaiting adjudication` cho Chủ sở hữu với các mệnh đề đối lập và bằng chứng hai phía; không tiếp tục sửa tự động.
 
 #### H.4 — Phê chuẩn cuối
 
@@ -475,7 +474,7 @@ Kết quả kiểm định kiến trúc phải tách khỏi trạng thái trư�
 Mỗi đơn vị chỉ có một vai trò chính, một giai đoạn và danh sách tệp tường minh:
 
 ```text
-Role: <Orchestrator | Analyst | Researcher | Designer | Implementer | Reviewer>
+Role: <Orchestrator | Analyst | Researcher | Designer | Implementer | Reviewer | Evidence adjudicator>
 Mode: <Canonical synchronization | Architecture change>
 Operation: <add | split | merge | reorder | rename | retire | clarify>
 Current phase: <A | B | C | D | E | G | H | I>
@@ -484,7 +483,7 @@ Run branch/worktree: <name and path>
 Allowed files: <explicit file list>
 Canonical inputs: <required source files>
 Required skills: <skill names or None>
-Required outputs: <artifacts and exact locations>
+Required outputs: <artifacts and exact locations; finding disposition/adjudication when applicable>
 Decision status: <Not required | Awaiting approval | Approved | Awaiting adjudication | Ratified | Rejected>
 Finding IDs and disposition: <IDs and current status or None>
 Stop conditions: <missing authority, unverified baseline, target drift, scope expansion, semantic ambiguity, disputed finding, failed gate>
@@ -501,6 +500,7 @@ Do not: <author lesson content, renumber stable IDs, mutate before approval, edi
 | F | Chủ sở hữu giáo trình | Không giao cho AI quyết định |
 | G | Người thực hiện | `$curriculum-goal-design` |
 | H | Người kiểm định độc lập | `$curriculum-quality-review` |
+| H.2 khi có tranh chấp dữ kiện | Người phân xử bằng chứng độc lập | Đọc dossier theo `agent-dispatch-protocol.md` 6.4–6.5 |
 | I | Điều phối viên | Chỉ tạo bản bàn giao |
 
 Tác nhân không tự chuyển giai đoạn. Nó trả về đầu ra, phép kiểm tra, điều chưa xác minh và lý do dừng cho điều phối viên.
@@ -509,7 +509,7 @@ Tác nhân không tự chuyển giai đoạn. Nó trả về đầu ra, phép ki
 
 1. Quyết định thay đổi hoặc giữ nguyên đã được ghi.
 2. `git-baseline.md` xác minh được commit nền, nhánh đích và vùng làm việc riêng; mọi commit triển khai, sửa và tích hợp đều truy vết được.
-3. Mọi finding có disposition, bằng chứng phản hồi và kết quả kiểm định lại; không còn finding bị tranh chấp chưa được Chủ sở hữu quyết định.
+3. Mọi finding có disposition, bằng chứng phản hồi và kết quả kiểm định lại; không còn finding bị tranh chấp hoặc `Not verified` trọng yếu chưa được Chủ sở hữu quyết định.
 4. Chủ sở hữu đã ghi `Ratify` trước tích hợp, hoặc đã ghi `Reject`/`Rolled back` và không để thay đổi thử nghiệm trên nhánh đích.
 5. Nguồn chuẩn trên nhánh đích nhất quán theo đúng thứ tự quyền lực.
 6. Không còn lỗi chặn trong đồ thị và đường truy vết sản phẩm trung gian.

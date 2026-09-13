@@ -203,6 +203,7 @@ ROOT ORCHESTRATOR: A, B, and H
   ├── Impact analysis agent: E
   ├── Human curriculum owner: F, only when required
   └── Independent review agent: G
+      └── Evidence adjudicator: only for material disputed findings
 ```
 
 - Một tác nhân nghiên cứu nên giữ C và D để bằng chứng và phán quyết dùng cùng mô hình mệnh đề.
@@ -325,7 +326,11 @@ Kiểm định bắt buộc với khẳng định `High` hoặc `Critical`, phá
 
 Với khẳng định `Low` hoặc `Medium` chỉ cập nhật siêu dữ liệu mà không đổi phán quyết hay ảnh hưởng, có thể kiểm tra cục bộ có ghi bằng chứng. Tuy nhiên, lượt rà soát trước phát hành phải có kiểm định độc lập cho toàn bộ hàng đợi được đóng.
 
-**Điều kiện kết thúc:** phán quyết và ảnh hưởng trọng yếu đạt `Pass`, hoặc giới hạn được ghi `Not verified` với phạm vi kiểm tra lại.
+Với finding trọng yếu của G, áp dụng mục 6.4 của [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md). Người nghiên cứu phản hồi finding về claim/evidence; Người phân tích ảnh hưởng phản hồi finding về impact map; bên còn lại là phía thứ ba của đánh giá `Out of scope` nếu độc lập với người phản hồi và reviewer. Nếu finding đồng thời chạm cả hai, Điều phối viên phải gọi một Người đánh giá ảnh hưởng mới. Chỉ finding `Accept` cục bộ mới quay về D hoặc E để sửa rồi kiểm định lại; finding từng tranh chấp, bị thu hẹp trọng yếu hoặc đổi phạm vi cần reviewer mới xác nhận.
+
+`Not verified` chỉ được ghi sau khi cạn đường kiểm tra theo mục 6.4. Nó thông báo Chủ sở hữu, tạo `Awaiting decision`, giữ cờ `Block use` khi có rủi ro và không cho phép kết quả `Refreshed`; công việc không phụ thuộc có thể tiếp tục.
+
+**Điều kiện kết thúc:** phán quyết và ảnh hưởng trọng yếu đạt `Pass`, hoặc đã có `Awaiting decision`/hồ sơ Chủ sở hữu cho `Not verified` theo giao thức; trường hợp sau chỉ có thể đi tới `Closed with handoff` hoặc `Blocked from use`.
 
 ### Giai đoạn H — Bàn giao và đóng lượt
 
@@ -377,7 +382,7 @@ Người kiểm định lần theo từng đường. Một nguồn mới không 
 Mỗi đơn vị công việc chỉ có một vai trò chính, một nhóm khẳng định không chồng tệp và một danh sách đầu ra tường minh:
 
 ```text
-Role: <Orchestrator | Researcher | Impact analyst | Independent reviewer>
+Role: <Orchestrator | Researcher | Impact analyst | Independent reviewer | Evidence adjudicator>
 Mode: <Targeted refresh | Release sweep>
 Run directory: <.agents/workflow-runs/run-id>
 Claim IDs: <explicit IDs>
@@ -386,7 +391,7 @@ Allowed files: <explicit file list>
 Canonical inputs: <references.md, dependent files, relevant rules>
 Research budget: <maximum targeted searches>
 Required skills: <skill names or None>
-Required outputs: <verdict, evidence rows, impact map, handoff>
+Required outputs: <verdict, evidence rows, impact map, handoff, and finding disposition/adjudication when applicable>
 Local gate: <machine checks and semantic pass conditions>
 Decision status: <Not required | Awaiting decision | Recorded>
 Stop conditions: <missing source access, unresolved material conflict, scope expansion, budget exhausted>
@@ -400,6 +405,7 @@ Do not: <survey tools, change dependent content, select product preference, self
 | E | Người phân tích ảnh hưởng | `$curriculum-quality-review` |
 | F | Chủ sở hữu giáo trình | Không giao cho AI quyết định |
 | G | Người kiểm định độc lập | `$curriculum-quality-review` |
+| G khi có tranh chấp dữ kiện | Người phân xử bằng chứng độc lập | Đọc dossier theo `agent-dispatch-protocol.md` 6.4–6.5 |
 | H | Điều phối viên | Chỉ bàn giao và đóng lượt |
 
 Tác nhân không tự chuyển giai đoạn. Nó trả về bằng chứng đã đọc, phán quyết, giới hạn, kiểm tra đã chạy và lý do dừng cho Điều phối viên.

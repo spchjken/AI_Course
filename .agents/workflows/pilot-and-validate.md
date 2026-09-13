@@ -92,7 +92,7 @@ READINESS AND SCOPE CHECK
                     └── No change required
                             ↓
                         INDEPENDENT QUALITY REVIEW
-                            ├── Fail → owning workflow or next-pilot plan → CLOSE
+                            ├── Material finding → disposition/adjudication → owner, next-pilot, or owning workflow
                             └── Pass → RECORD STATUS AND HANDOFF → CLOSE
 ```
 
@@ -176,6 +176,7 @@ ROOT ORCHESTRATOR: A, B, C, and J
   ├── Analysis agent: F
   ├── Human curriculum owner: G
   └── Independent review agent: H
+      └── Evidence adjudicator: only for material disputed findings
 ```
 
 - D là cổng do con người thực hiện; tác nhân AI không được tự tuyên bố đã dạy thử.
@@ -309,9 +310,11 @@ Người kiểm định đọc trực tiếp nguồn chuẩn, phiên bản đã 
   4. Ghi phạm vi kiểm chứng, giới hạn mẫu, phiên bản và môi trường trong `review.md` của hồ sơ pilot; cập nhật phán quyết trạng thái và liên kết bằng chứng trong `review.md` hiện hành của bài học hoặc lộ trình.
   5. Đề xuất trạng thái đúng với bằng chứng, không điều chỉnh điểm để đạt trạng thái mong muốn.
 
+Nếu H nêu finding trọng yếu về diễn giải dữ liệu, hard gate, phạm vi bằng chứng hoặc phán quyết trạng thái, áp dụng mục 6.4 của [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md). `review.md` của hồ sơ pilot giữ finding; `finding-disposition.md` trong hồ sơ lượt chạy giữ phản hồi và dossier phân xử. Trong workflow này, Người quản lý bằng chứng là phía thứ ba của đánh giá `Out of scope`, nhưng phải độc lập với Người phân tích và Reviewer; nếu không chứng minh được điều đó, không dùng `Out of scope` để đóng finding.
+
 `Validated` chỉ được đề xuất khi phiên bản đã đáp ứng `Release-ready`, có học viên đúng đối tượng, có bằng chứng thực tế về kết quả, độ rõ ràng và thời lượng, không còn cổng chặn, và lượt kiểm định độc lập có bằng chứng thực thi theo `agent-dispatch-protocol.md` nếu dùng tác nhân AI.
 
-**Điều kiện kết thúc:** có báo cáo kiểm định độc lập. Nếu một hard gate là `Not verified`, báo cáo phải ghi phạm vi cần kiểm tra lại và trạng thái trong `review.md` hiện hành phải tuân theo `.agents/rules/quality-gates.md`.
+**Điều kiện kết thúc:** có báo cáo kiểm định độc lập. Nếu một hard gate là `Not verified`, chỉ ghi sau khi đã cạn đường kiểm tra theo mục 6.4; phải tạo `Awaiting adjudication`, thông báo lại Chủ sở hữu ở G và khóa mọi nâng trạng thái. Khi Chủ sở hữu chưa có mặt, giữ trạng thái hiện hành và chỉ tiếp tục công việc thật sự độc lập. Báo cáo phải ghi phạm vi cần kiểm tra lại và trạng thái trong `review.md` hiện hành phải tuân theo `.agents/rules/quality-gates.md`.
 
 ### Giai đoạn I — Bàn giao, mất hiệu lực và kế hoạch dạy thử lại
 
@@ -320,7 +323,7 @@ Người kiểm định đọc trực tiếp nguồn chuẩn, phiên bản đã 
 - Nếu G chấp nhận sửa đổi bắt buộc: chỉ bàn giao sau khi H1 đã ghi `Needs revision` vào `review.md` hiện hành của đối tượng. Ghi tệp chịu ảnh hưởng, giả thuyết, bằng chứng nguồn và thước đo cho lần dạy thử lại. Không sửa nội dung trong quy trình này.
 - Nếu G chấp nhận sửa đổi tùy chọn: bàn giao sang quy trình sở hữu mà không suy diễn thay đổi trạng thái của phiên bản đã khóa; phiên bản mới phải được kiểm định theo quy trình sở hữu trước khi kế thừa bất kỳ trạng thái nào.
 - Nếu phiên bản thay đổi sau dạy thử: giữ hồ sơ cũ làm lịch sử, nhưng ghi rõ bằng chứng nào không còn áp dụng cho phiên bản mới. Lượt dạy thử lại dùng một thư mục hồ sơ mới.
-- Nếu bằng chứng chưa đủ hoặc điều kiện tổ chức gây nhiễu: giữ trạng thái hiện có, ghi khẳng định bị ảnh hưởng là `Inconclusive`, nêu giới hạn và tạo kế hoạch thu bằng chứng tiếp theo. Chỉ dùng `Not verified` khi H đã chấm một hard gate theo `.agents/rules/quality-gates.md`.
+- Nếu bằng chứng chưa đủ hoặc điều kiện tổ chức gây nhiễu: giữ trạng thái hiện có, ghi khẳng định bị ảnh hưởng là `Inconclusive`, nêu giới hạn và tạo kế hoạch thu bằng chứng tiếp theo. Chỉ dùng `Not verified` khi H đã chấm một hard gate và đã thỏa điều kiện “đã cạn đường kiểm tra” của `agent-dispatch-protocol.md`; Chủ sở hữu quyết định thu thêm bằng chứng, thu hẹp phạm vi, trì hoãn hoặc từ chối.
 - Nếu H2 đạt: Người kiểm định ghi trạng thái vào `review.md` hiện hành của đúng bài học hoặc lộ trình, kèm liên kết tới `review.md` của hồ sơ pilot; Điều phối viên chỉ xác nhận bàn giao. Không nâng các phạm vi không được bằng chứng bao phủ.
 
 **Điều kiện kết thúc:** quy trình sở hữu tiếp theo, phạm vi kiểm định lại, bằng chứng cũ bị ảnh hưởng và trạng thái hiện hành đều được ghi rõ.
@@ -370,14 +373,14 @@ Pilot evidence
 Mỗi đơn vị công việc chỉ có một vai trò chính, một giai đoạn và danh sách tệp tường minh:
 
 ```text
-Role: <Orchestrator | Evidence steward | Analyst | Independent reviewer>
+Role: <Orchestrator | Evidence steward | Analyst | Independent reviewer | Evidence adjudicator>
 Pilot target: <lesson | learning run>
 Current phase: <A | B | C | E | F | H | I>
 Allowed files: <explicit file list>
 Canonical inputs: <required source files>
 Evidence access: <anonymized files and limitations>
 Required skills: <skill names or None>
-Required outputs: <artifacts and exact locations>
+Required outputs: <artifacts and exact locations; finding disposition/adjudication when applicable>
 Decision status: <Not required | Awaiting human decision | Recorded>
 Stop conditions: <missing consent plan, sensitive data, unlocked version, insufficient evidence, scope expansion>
 Do not: <conduct the pilot, identify participants, apply content changes, self-approve status>
@@ -393,6 +396,7 @@ Do not: <conduct the pilot, identify participants, apply content changes, self-a
 | F | Người phân tích | `$pilot-feedback-analysis`; `$assessment-design` khi cần |
 | G | Chủ sở hữu giáo trình | Không giao cho AI quyết định |
 | H | Người kiểm định độc lập | `$curriculum-quality-review`; H1 xác nhận mất hiệu lực, H2 kiểm định duy trì hoặc nâng trạng thái |
+| H khi có tranh chấp dữ kiện | Người phân xử bằng chứng độc lập | Đọc dossier theo `agent-dispatch-protocol.md` 6.4–6.5 |
 | I | Điều phối viên | Chỉ bàn giao và xác nhận tham chiếu trạng thái |
 
 Tác nhân không tự chuyển giai đoạn. Nó trả về đầu ra, bằng chứng đã đọc, giới hạn, kết quả kiểm tra và lý do dừng cho Điều phối viên.

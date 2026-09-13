@@ -24,11 +24,11 @@ Không công nhận việc tách tác nhân chỉ dựa trên tên vai trò ho�
 
 | Thành phần | Trạng thái | Chức năng |
 |---|---|---|
-| [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md) | `Proposed` | Quyết định tự làm, tái sử dụng, sinh, trì hoãn và kiểm chứng tác nhân tại thời điểm chạy. |
+| [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md) | `Active` | Quyết định tự làm, tái sử dụng, sinh, trì hoãn, kiểm chứng tác nhân, phản biện và phân xử finding trọng yếu tại thời điểm chạy. |
 | [`workflow-runs/`](../workflow-runs/README.md) | Hồ sơ vận hành | Lưu sổ đăng ký và bằng chứng thực thi; không phải nguồn chuẩn hay hồ sơ quyết định. |
 | [`$workflow-orchestration`](../skills/workflow-orchestration/SKILL.md) | Có thể gọi | Áp dụng giao thức phân công khi thực thi một quy trình nhiều vai trò. |
 
-Phép thử ngày 2026-09-05 chỉ xác nhận rằng tiện ích Codex khi đó thực sự sinh được tác nhân con và trả tên nhiệm vụ chuẩn làm định danh. Nó chưa kiểm chứng toàn bộ quyết định phân công, khóa tệp hay kiểm định độc lập trong một quy trình chuyên môn. Vì vậy giao thức vẫn giữ trạng thái `Proposed` cho tới khi được chạy thử trọn vẹn.
+Phép thử ngày 2026-09-05 xác nhận rằng tiện ích Codex khi đó thực sự sinh được tác nhân con và trả tên nhiệm vụ chuẩn làm định danh. Giao thức sau đó đã được người dùng duyệt `Active`; tuy vậy, từng workflow vẫn phải ghi `Independent review not verified` nếu lượt chạy cụ thể không chứng minh được tính độc lập, và phải dùng mục 6.4 của giao thức khi có finding trọng yếu.
 
 ## Trạng thái của quy trình
 
@@ -94,7 +94,7 @@ Thay đổi cục bộ trong bài học không cần đi qua `change-curriculum-
 
 | Quy trình | Trạng thái | Khi dùng | Đầu ra hoặc bàn giao chính |
 |---|---|---|---|
-| [`complete-goal-lessons.md`](complete-goal-lessons.md) | `Proposed` | Biến bản định hướng của một `gNN` thành bộ tài liệu bài học đã được kiểm định độc lập; đang hoàn thiện cơ chế tự động nghiên cứu nguồn bên ngoài. | `Pilot-ready` hoặc `Release-ready`, kèm sản phẩm trung gian và bản bàn giao cho dạy thử. |
+| [`complete-goal-lessons.md`](complete-goal-lessons.md) | `Active` | Biến bản định hướng của một `gNN` thành bộ tài liệu bài học đã được kiểm định độc lập, có khảo sát nguồn ngoài và phân xử finding trọng yếu. | `Pilot-ready` hoặc `Release-ready`, kèm sản phẩm trung gian và bản bàn giao cho dạy thử. |
 | [`compose-learning-run.md`](compose-learning-run.md) | `Active` | Ghép mục tiêu và bài học chuẩn thành chương trình thực hành ngắn, lộ trình 1-1 hoặc khóa đầy đủ. | Hợp đồng lộ trình, lịch, ma trận bao phủ, mức sẵn sàng, kiểm định độc lập và bàn giao dạy thử. |
 | [`pilot-and-validate.md`](pilot-and-validate.md) | `Proposed` | Dạy thử bài học hoặc lộ trình đã đạt tối thiểu `Pilot-ready` và phân tích bằng chứng thực tế. | Hồ sơ dạy thử ẩn danh, phân tích nguyên nhân, quyết định của chủ sở hữu, trạng thái chất lượng có phạm vi và bàn giao sửa đổi. |
 | [`change-curriculum-architecture.md`](change-curriculum-architecture.md) | `Proposed` *(đã chạy thử; chờ quyết định)* | Thay đổi mục tiêu, quan hệ phụ thuộc, cam kết hoặc ranh giới cấp giáo trình. | Quyết định được ghi, nguồn chuẩn được đồng bộ, ảnh hưởng được kiểm định và chuyển tới quy trình sở hữu. |

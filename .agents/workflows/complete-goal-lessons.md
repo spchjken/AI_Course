@@ -391,11 +391,12 @@ Queued → Preflight
 Authoring
   ├── Targeted claim check (if authoring reveals a material new claim) → Authoring
   └── Independent review
-        ├── Repair
-        │     ├── Local repair → Independent review
+        ├── Finding disposition and adjudication
+        │     ├── Accepted local repair → Independent review
         │     ├── Design revision → Learning design → Content trace refresh
         │     │     → Impact routing → Targeted authoring → Independent review
-        │     └── Escalate → Conflict classification
+        │     ├── Disputed evidence → Independent adjudication or Awaiting adjudication
+        │     └── Semantic/scope conflict → Conflict classification
         └── Quality recorded → Ready for handoff
 ```
 
@@ -480,6 +481,7 @@ Sau khi C đóng, không lặp lại toàn bộ khảo sát nền. Nếu D1–D6
 5. Truy vết `plan promise → goal outcome → external evidence → lesson activity → artifact → assessment → run checkpoint`.
 6. Ghi phát hiện theo `Blocker`, `Major`, `Minor`, `Open question` và lưu vào `review.md`.
 7. Không sửa nội dung trong lượt kiểm định đầu tiên.
+8. Với mọi `Blocker`, `Major`, hard gate `Fail`/`Not verified` hoặc finding có thể đổi phạm vi, áp dụng mục 6.4 của [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md). `review.md` giữ finding; `finding-disposition.md` trong hồ sơ lượt chạy giữ phản hồi, phân xử và liên kết kiểm định lại.
 
 **Điều kiện kết thúc:** có kiểm định độc lập, có thể lặp lại và chỉ rõ thay đổi nhỏ nhất đủ tin cậy cho lỗi chặn hoặc lỗi `Major`.
 
@@ -488,15 +490,15 @@ Sau khi C đóng, không lặp lại toàn bộ khảo sát nền. Nếu D1–D6
 **Vai trò:** Bên sửa chịu trách nhiệm cho đơn vị công việc sở hữu tệp bị ảnh hưởng
 
 1. Nhận bản định hướng thiết kế, bộ tài liệu hiện tại và phát hiện; không nhận nhiệm vụ “làm hay hơn” chung chung.
-2. Sửa theo thứ tự lỗi chặn → `Major` → `Minor` có lợi ích rõ.
-3. Phân loại phát hiện trước khi sửa:
+2. Trước khi sửa, bên sở hữu tệp phải ghi disposition theo mục 6.4 của `agent-dispatch-protocol.md`. Trong workflow này, phía thứ ba đánh giá `Out of scope` là Người thiết kế học tập hoặc Người tích hợp dàn ý không sở hữu tệp bị finding và độc lập với reviewer. `Not verified` chỉ được tạo sau khi cạn đường kiểm tra; nó khóa việc nâng trạng thái hoặc bàn giao phần phụ thuộc và chuyển `Awaiting adjudication` cho Chủ sở hữu giáo trình.
+3. Chỉ finding `Accept` thuộc lỗi cục bộ mới được sửa tự động, theo thứ tự lỗi chặn → `Major` → `Minor` có lợi ích rõ. Phân loại finding trước khi sửa:
    - Với phát hiện do ranh giới mục tiêu, điều kiện tiên quyết, quan hệ phụ thuộc, lời hứa chương trình hoặc xung đột nguồn chuẩn, không sửa bài học. Bàn giao sang `change-curriculum-architecture` và chỉ quay lại `Preflight` sau khi nguồn chuẩn đã được cập nhật.
    - Với phát hiện cho thấy `learning-design-contract.md` không còn chứng minh được kết quả — như sản phẩm trung gian không lộ quyết định của học viên hoặc ánh xạ đánh giá không đủ bằng chứng — trả về B để sửa hợp đồng. Sau đó B0 phải cập nhật `content-trace.md`, C cập nhật phần nghiên cứu chịu ảnh hưởng; Điều phối viên xác định gói D bị ảnh hưởng và chỉ giao lại các gói đó. D2 và D4 thường bị ảnh hưởng, nhưng không được giả định D1, D3 hoặc D5 không bị ảnh hưởng nếu bảng truy vết nói khác.
    - Với lỗi cục bộ thuộc một tệp, trả về đúng đơn vị công việc sở hữu tệp đó.
 4. Ghi ánh xạ `finding → file/change → expected evidence`.
-5. Người kiểm định chạy lại mọi cổng bị ảnh hưởng và kiểm tra tính nhất quán của chuỗi truy vết. Với nhánh sửa hợp đồng B, phạm vi kiểm định lại phải gồm hợp đồng đã sửa, `content-trace.md`, phần nghiên cứu C chịu ảnh hưởng và mọi gói D được định tuyến lại.
+5. Người kiểm định chạy lại mọi cổng bị ảnh hưởng và kiểm tra tính nhất quán của chuỗi truy vết. Reviewer đầu chỉ kiểm định lại finding `Accept` thuộc lỗi cục bộ; finding từng tranh chấp hoặc bị thu hẹp trọng yếu cần reviewer mới theo mục 6.4. Với nhánh sửa hợp đồng B, phạm vi kiểm định lại phải gồm hợp đồng đã sửa, `content-trace.md`, phần nghiên cứu C chịu ảnh hưởng và mọi gói D được định tuyến lại.
 
-Giới hạn mặc định: tối đa **hai vòng sửa** cho cùng một bộ phát hiện. Sau hai vòng vẫn còn cùng lỗi chặn, chuyển `Escalate` với bằng chứng và câu hỏi quyết định cụ thể; không lặp vô hạn.
+Giới hạn mặc định: tối đa **hai vòng sửa** cho cùng một bộ phát hiện. Sau hai vòng vẫn còn cùng lỗi chặn, tranh chấp hoặc `Not verified` trọng yếu, chuyển `Awaiting adjudication` cho Chủ sở hữu với mệnh đề đối lập, dossier bằng chứng và các phương án; không lặp vô hạn.
 
 **Điều kiện kết thúc:** tất cả các cổng bắt buộc `Pass`, không có tiêu chí `0`, tổng điểm đạt ít nhất `11/16`, hoặc vấn đề đã được chuyển cấp trung thực.
 
@@ -534,6 +536,7 @@ ROOT ORCHESTRATOR
   ├── Feedback-form agent: D5, or reuse the authoring agent
   ├── Integration agent: D6
   ├── Independent review agent: E
+  ├── Evidence adjudicator: only for material disputed findings
   ├── Owning agent repair: F → affected work unit
   └── ROOT ORCHESTRATOR: A and G
 ```
@@ -555,7 +558,7 @@ Nếu môi trường không hỗ trợ tác nhân con, có thể chạy các đ�
 Ràng buộc phân công riêng của quy trình này:
 
 ```text
-Required isolation: E
+Required isolation: E; a fresh Evidence adjudicator for material disputed findings
 Preferred continuity: B → B0; D1 → D2 → D3
 Conditional specialists: C, D4, D6
 Reusable unit: D5 may reuse the authoring agent
@@ -570,14 +573,14 @@ Spawn verification: required before the first delegated work unit in an unverifi
 Mỗi lượt chỉ giao một vai trò, một giai đoạn và một gói công việc. Giai đoạn A và G dùng vai trò Điều phối viên; các giai đoạn còn lại dùng vai trò chuyên trách tương ứng. “Giai đoạn” chỉ vị trí trong vòng đời; “gói công việc” chỉ phần việc hẹp có đầu ra và quyền ghi riêng. Lời nhắc tối thiểu phải có:
 
 ```text
-Role: <Coordinator | Researcher | Learning designer | Lesson author | Assessment designer | Feedback-form author | Integrator | Independent reviewer | Repair owner>
+Role: <Coordinator | Researcher | Learning designer | Lesson author | Assessment designer | Feedback-form author | Integrator | Independent reviewer | Evidence adjudicator | Repair owner>
 Goal folder: <ai-native-builder/goals/gNN-*>
 Phase: <A | B | C | D | E | F | G>
 Work package: <A1-A6 | B1-B7 and B0 | C1-C6 | D1-D6 | E1-E6 | F1-F5 | G1-G6>
 Allowed files: <explicit file list>
 Canonical inputs: <required files to read>
 Required skills: <ordered `$skill-name` values or None>
-Required outputs: <files, sections, and evidence>
+Required outputs: <files, sections, evidence, and finding disposition/adjudication when applicable>
 Local gate: <pass conditions from section 4.10>
 Stop conditions: <conflict, missing input, unsafe action, scope change>
 Do not: <change goals, copy shared content, raise status, expand scope>
