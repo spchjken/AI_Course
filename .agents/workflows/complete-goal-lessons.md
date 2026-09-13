@@ -1,6 +1,6 @@
 # Quy trình đề xuất: Hoàn thiện bài học theo mục tiêu
 
-- **Trạng thái:** `Proposed` — tạm rút để hoàn thiện cơ chế tự động nghiên cứu và kiểm soát nguồn bên ngoài
+- **Trạng thái:** `Active` — đã được người dùng duyệt
 - **Phạm vi:** hoàn thiện lần lượt các bài học chuẩn trong `ai-native-builder/goals/gNN-*`.
 - **Đơn vị xử lý:** một thư mục mục tiêu trong mỗi vòng lặp.
 - **Mục tiêu:** đưa từng bài học từ bản định hướng thiết kế tới tối thiểu `Pilot-ready` bằng quy trình có bằng chứng; không đồng nhất việc tạo đủ tệp với hoàn thành.

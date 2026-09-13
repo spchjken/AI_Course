@@ -30,6 +30,19 @@ CLAIM_HEADERS = [
     "Ngày kiểm tra tiếp theo",
 ]
 
+EVIDENCE_HEADERS = [
+    "Mã khẳng định",
+    "Mã nguồn",
+    "Nguồn",
+    "Thẩm quyền",
+    "Ngày công bố/cập nhật",
+    "Ngày kiểm tra",
+    "Phiên bản/phạm vi",
+    "Chiều bằng chứng",
+    "Phần được hỗ trợ",
+    "Giới hạn",
+]
+
 ALLOWED_CURRENCY = {"Stable", "Version-bound", "Rapidly changing"}
 ALLOWED_RISK = {"Low", "Medium", "High", "Critical"}
 ALLOWED_VERDICTS = {
@@ -39,12 +52,27 @@ ALLOWED_VERDICTS = {
     "Contradicted",
     "Inconclusive",
 }
+ALLOWED_EVIDENCE_DIRECTIONS = {"Supporting", "Falsifying", "Limiting"}
 EMPTY_VALUES = {"", "-", "—"}
 RISK_ORDER = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
+LESSON_PACKAGE_MARKERS = {
+    "lesson.md",
+    "practice.md",
+    "instructor-guide.md",
+    "assessment.md",
+    "pilot-feedback-form.md",
+}
 
 
 @dataclass
 class Claim:
+    path: Path
+    line: int
+    values: dict[str, str]
+
+
+@dataclass
+class Evidence:
     path: Path
     line: int
     values: dict[str, str]
@@ -90,42 +118,59 @@ def parse_iso_date(value: str) -> dt.date | None:
         return None
 
 
-def collect_claims(root: Path) -> tuple[list[Claim], list[Issue]]:
+def collect_ledgers(root: Path) -> tuple[list[Claim], list[Evidence], list[Issue], int]:
     claims: list[Claim] = []
+    evidence: list[Evidence] = []
     issues: list[Issue] = []
+    ledger_count = 0
     for path in sorted(root.rglob("references.md")):
         lines = path.read_text(encoding="utf-8").splitlines()
-        found_ledger = False
+        found_claim_ledger = False
+        found_evidence_ledger = False
         for header_line, header, rows in markdown_tables(lines):
-            if "Mã khẳng định" not in header or "Khẳng định" not in header:
-                continue
-            found_ledger = True
-            missing = [name for name in CLAIM_HEADERS if name not in header]
-            if missing:
-                issues.append(Issue(path, header_line, "", f"Thiếu cột: {', '.join(missing)}"))
-                continue
-            for line, row in rows:
-                if len(row) != len(header):
-                    issues.append(Issue(path, line, "", "Số ô không khớp số cột trong bảng khẳng định."))
+            if "Mã khẳng định" in header and "Khẳng định" in header:
+                found_claim_ledger = True
+                missing = [name for name in CLAIM_HEADERS if name not in header]
+                if missing:
+                    issues.append(Issue(path, header_line, "", f"Sổ khẳng định thiếu cột: {', '.join(missing)}"))
                     continue
-                values = dict(zip(header, row, strict=True))
-                claims.append(Claim(path, line, values))
-        if not found_ledger:
+                for line, row in rows:
+                    if len(row) != len(header):
+                        issues.append(Issue(path, line, "", "Số ô không khớp số cột trong sổ khẳng định."))
+                        continue
+                    claims.append(Claim(path, line, dict(zip(header, row, strict=True))))
+            elif "Mã khẳng định" in header and "Mã nguồn" in header:
+                found_evidence_ledger = True
+                missing = [name for name in EVIDENCE_HEADERS if name not in header]
+                if missing:
+                    issues.append(Issue(path, header_line, "", f"Sổ bằng chứng thiếu cột: {', '.join(missing)}"))
+                    continue
+                for line, row in rows:
+                    if len(row) != len(header):
+                        issues.append(Issue(path, line, "", "Số ô không khớp số cột trong sổ bằng chứng."))
+                        continue
+                    evidence.append(Evidence(path, line, dict(zip(header, row, strict=True))))
+        if found_claim_ledger:
+            ledger_count += 1
+        else:
             issues.append(Issue(path, 1, "", "Không tìm thấy bảng `Sổ khẳng định` có các cột nhận diện."))
-    return claims, issues
+        if not found_evidence_ledger:
+            issues.append(Issue(path, 1, "", "Không tìm thấy bảng `Sổ bằng chứng` có các cột nhận diện."))
+    return claims, evidence, issues, ledger_count
 
 
-def validate_claim(claim: Claim, as_of: dt.date) -> tuple[list[Issue], bool, str]:
+def validate_claim(claim: Claim, as_of: dt.date) -> tuple[list[Issue], list[str]]:
     values = claim.values
     claim_id = values["Mã khẳng định"]
     issues: list[Issue] = []
-    due = False
-    reason = ""
+    reasons: list[str] = []
 
     required = [
         "Mã khẳng định",
         "Khẳng định",
+        "Loại khẳng định",
         "Độ cập nhật cần thiết",
+        "Tác động quyết định",
         "Mức rủi ro",
         "Phán quyết",
         "Ngày kiểm tra",
@@ -157,24 +202,100 @@ def validate_claim(claim: Claim, as_of: dt.date) -> tuple[list[Issue], bool, str
         if next_date is None:
             issues.append(Issue(claim.path, claim.line, claim_id, "`Ngày kiểm tra tiếp theo` phải dùng YYYY-MM-DD hoặc —."))
         elif next_date <= as_of:
-            due = True
-            reason = f"Đến hạn {next_check}"
-    elif currency == "Rapidly changing":
-        due = True
-        reason = "Thay đổi nhanh nhưng chưa có ngày kiểm tra tiếp theo"
+            reasons.append(f"Đến hạn {next_check}")
+    elif currency == "Rapidly changing" and "trước" not in values["Điều kiện kiểm tra lại"].lower():
+        issues.append(Issue(claim.path, claim.line, claim_id, "Claim thay đổi nhanh phải có ngày kiểm tra tiếp theo hoặc điều kiện trước khi sử dụng."))
+        reasons.append("Thay đổi nhanh nhưng thiếu lịch hoặc điều kiện trước sử dụng")
 
     if verdict in {"Contradicted", "Not supported", "Inconclusive"}:
-        due = True
-        reason = f"Phán quyết hiện tại: {verdict}"
-    return issues, due, reason
+        reasons.append(f"Phán quyết hiện tại: {verdict}")
+    return issues, reasons
 
 
-def render_markdown(claims: list[Claim], issues: list[Issue], due_rows: list[tuple[Claim, str]], as_of: dt.date) -> str:
+def validate_evidence(claims: list[Claim], evidence: list[Evidence]) -> list[Issue]:
+    issues: list[Issue] = []
+    claims_by_file: dict[Path, set[str]] = {}
+    evidence_by_claim: set[tuple[Path, str]] = set()
+    seen_pairs: set[tuple[Path, str, str]] = set()
+    source_targets: dict[tuple[Path, str], str] = {}
+
+    for claim in claims:
+        claims_by_file.setdefault(claim.path, set()).add(claim.values["Mã khẳng định"])
+
+    required = [
+        "Mã khẳng định",
+        "Mã nguồn",
+        "Nguồn",
+        "Thẩm quyền",
+        "Ngày kiểm tra",
+        "Phiên bản/phạm vi",
+        "Chiều bằng chứng",
+        "Phần được hỗ trợ",
+    ]
+    for row in evidence:
+        values = row.values
+        claim_id = values["Mã khẳng định"]
+        source_id = values["Mã nguồn"]
+        for field in required:
+            if values[field] in EMPTY_VALUES:
+                issues.append(Issue(row.path, row.line, claim_id, f"Bằng chứng thiếu `{field}`."))
+
+        checked = values["Ngày kiểm tra"]
+        if checked not in EMPTY_VALUES and parse_iso_date(checked) is None:
+            issues.append(Issue(row.path, row.line, claim_id, "`Ngày kiểm tra` của bằng chứng phải dùng YYYY-MM-DD."))
+        published = values["Ngày công bố/cập nhật"]
+        if published not in EMPTY_VALUES and parse_iso_date(published) is None:
+            issues.append(Issue(row.path, row.line, claim_id, "`Ngày công bố/cập nhật` phải dùng YYYY-MM-DD hoặc —."))
+        if values["Chiều bằng chứng"] not in ALLOWED_EVIDENCE_DIRECTIONS:
+            issues.append(Issue(row.path, row.line, claim_id, "`Chiều bằng chứng` không hợp lệ."))
+        if claim_id not in claims_by_file.get(row.path, set()):
+            issues.append(Issue(row.path, row.line, claim_id, "Bằng chứng trỏ tới claim không tồn tại trong cùng tệp."))
+
+        pair = (row.path, claim_id, source_id)
+        if pair in seen_pairs:
+            issues.append(Issue(row.path, row.line, claim_id, f"Trùng cặp claim–source `{source_id}`."))
+        seen_pairs.add(pair)
+        source_key = (row.path, source_id)
+        previous_target = source_targets.get(source_key)
+        if previous_target is not None and previous_target != values["Nguồn"]:
+            issues.append(Issue(row.path, row.line, claim_id, f"Mã nguồn `{source_id}` ánh xạ tới nhiều nguồn khác nhau."))
+        else:
+            source_targets[source_key] = values["Nguồn"]
+        evidence_by_claim.add((row.path, claim_id))
+
+    for claim in claims:
+        claim_id = claim.values["Mã khẳng định"]
+        if (claim.path, claim_id) not in evidence_by_claim:
+            issues.append(Issue(claim.path, claim.line, claim_id, "Claim không có hàng bằng chứng liên kết."))
+    return issues
+
+
+def audit_release_coverage(root: Path) -> list[Issue]:
+    issues: list[Issue] = []
+    candidate_dirs = {path.parent for name in LESSON_PACKAGE_MARKERS for path in root.rglob(name)}
+    for directory in sorted(candidate_dirs):
+        if not (directory / "references.md").exists():
+            issues.append(Issue(directory, 1, "", "Coverage not verified: gói bài học đã soạn nhưng thiếu `references.md`."))
+    return issues
+
+
+def render_markdown(
+    claims: list[Claim],
+    evidence: list[Evidence],
+    issues: list[Issue],
+    due_rows: list[tuple[Claim, list[str]]],
+    as_of: dt.date,
+    ledger_count: int,
+    release_sweep: bool,
+) -> str:
     lines = [
         "# Hàng đợi khẳng định dễ lỗi thời",
         "",
         f"- Ngày tham chiếu: {as_of.isoformat()}",
-        f"- Sổ khẳng định tìm thấy: {len(claims)}",
+        f"- Chế độ: {'Rà soát trước phát hành' if release_sweep else 'Làm mới có mục tiêu'}",
+        f"- Sổ khẳng định tìm thấy: {ledger_count}",
+        f"- Khẳng định tìm thấy: {len(claims)}",
+        f"- Hàng bằng chứng tìm thấy: {len(evidence)}",
         f"- Lỗi cấu trúc hoặc siêu dữ liệu: {len(issues)}",
         f"- Khẳng định cần xử lý: {len(due_rows)}",
         "",
@@ -183,8 +304,9 @@ def render_markdown(claims: list[Claim], issues: list[Issue], due_rows: list[tup
         "| Mức rủi ro | Mã khẳng định | Tệp | Dòng | Lý do | Phán quyết | Vị trí sử dụng |",
         "|---|---|---|---:|---|---|---|",
     ]
-    for claim, reason in due_rows:
+    for claim, reasons in due_rows:
         values = claim.values
+        reason = "; ".join(reasons)
         lines.append(
             f"| {values['Mức rủi ro']} | {values['Mã khẳng định']} | `{claim.path.as_posix()}` | {claim.line} | {reason} | {values['Phán quyết']} | {values['Vị trí sử dụng']} |"
         )
@@ -205,6 +327,7 @@ def main() -> int:
     parser.add_argument("--as-of", type=str, default=dt.date.today().isoformat(), help="Reference date in YYYY-MM-DD")
     parser.add_argument("--output", type=Path, help="Optional Markdown output path")
     parser.add_argument("--strict", action="store_true", help="Return nonzero when schema or metadata issues are found")
+    parser.add_argument("--release-sweep", action="store_true", help="Also check authored lesson packages for ledger coverage")
     args = parser.parse_args()
 
     as_of = parse_iso_date(args.as_of)
@@ -214,8 +337,11 @@ def main() -> int:
     if not root.exists():
         parser.error(f"Scan root does not exist: {root}")
 
-    claims, issues = collect_claims(root)
-    due_rows: list[tuple[Claim, str]] = []
+    claims, evidence, issues, ledger_count = collect_ledgers(root)
+    issues.extend(validate_evidence(claims, evidence))
+    if args.release_sweep:
+        issues.extend(audit_release_coverage(root))
+    due_rows: list[tuple[Claim, list[str]]] = []
     seen_ids: dict[str, Claim] = {}
     for claim in claims:
         claim_id = claim.values["Mã khẳng định"]
@@ -223,13 +349,13 @@ def main() -> int:
             issues.append(Issue(claim.path, claim.line, claim_id, f"Trùng mã với {seen_ids[claim_id].path.as_posix()}:{seen_ids[claim_id].line}."))
         else:
             seen_ids[claim_id] = claim
-        claim_issues, due, reason = validate_claim(claim, as_of)
+        claim_issues, reasons = validate_claim(claim, as_of)
         issues.extend(claim_issues)
-        if due:
-            due_rows.append((claim, reason))
+        if reasons:
+            due_rows.append((claim, reasons))
 
     due_rows.sort(key=lambda row: (RISK_ORDER.get(row[0].values["Mức rủi ro"], 99), row[0].values["Mã khẳng định"]))
-    report = render_markdown(claims, issues, due_rows, as_of)
+    report = render_markdown(claims, evidence, issues, due_rows, as_of, ledger_count, args.release_sweep)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(report, encoding="utf-8")

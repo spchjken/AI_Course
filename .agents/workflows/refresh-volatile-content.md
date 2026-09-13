@@ -55,10 +55,19 @@ Không tạo danh mục khẳng định trung tâm. Mỗi lượt chạy chỉ t
 ```text
 .agents/workflow-runs/<run-id>/
 ├── orchestration-log.md
-└── volatile-claim-queue.md
+├── trigger-input.md
+├── volatile-claim-queue.md
+├── impact-map.md
+├── review.md
+└── handoff.md
 ```
 
 Hàng đợi dẫn xuất không thay `references.md` và không được dùng làm nguồn cho bài học.
+
+- `trigger-input.md` ghi ngày tham chiếu, chế độ, tín hiệu theo ngày/phiên bản/sự kiện/trước sử dụng và nguồn của tín hiệu. Với lượt chỉ dựa trên ngày, tệp vẫn ghi rõ không có tín hiệu ngoài lịch.
+- `impact-map.md` là bản phân tích dẫn xuất từ claim tới nội dung phụ thuộc; nó không tự đổi trạng thái chất lượng.
+- `review.md` chỉ do Người kiểm định độc lập ghi cho phạm vi bắt buộc kiểm định.
+- `handoff.md` ghi từng đơn vị nhận, trạng thái tiếp nhận và điều kiện tái nhập. Hồ sơ quyết định của con người được liên kết từ tệp này hoặc lưu cùng thư mục lượt chạy khi có cổng F.
 
 ### 2.1. Mã khẳng định
 
@@ -139,6 +148,17 @@ Any state ──→ Awaiting decision ──→ return to the affected state
 
 `Blocked` là trạng thái của lượt bảo trì hoặc phạm vi sử dụng, không tự thay trạng thái chất lượng của toàn giáo trình. Tệp phụ thuộc chỉ đổi trạng thái chất lượng sau kiểm định của quy trình sở hữu.
 
+Khi kết thúc, Điều phối viên phải ghi đúng một kết quả lượt chạy, tách khỏi trạng thái chất lượng của nội dung:
+
+```text
+Refreshed             = bằng chứng và siêu dữ liệu đã cập nhật, không còn thay đổi phụ thuộc bắt buộc.
+Closed with handoff   = phần thuộc workflow này đã xong, nhưng nội dung phụ thuộc còn phải được workflow sở hữu xử lý.
+Blocked from use      = phạm vi phụ thuộc đã được bảo vệ khỏi sử dụng và có điều kiện gỡ chặn.
+Awaiting decision     = chưa thể đóng vì thiếu quyết định của chủ sở hữu.
+```
+
+Không dùng `Closed` đơn lẻ và không diễn giải `Closed with handoff` là “nội dung đã được sửa”.
+
 ## 5. Đầu vào, đầu ra và quyền sở hữu
 
 ### 5.1. Đầu vào tối thiểu
@@ -148,6 +168,7 @@ Any state ──→ Awaiting decision ──→ return to the affected state
 | Điều kiện kích hoạt hoặc yêu cầu bảo trì | Người dùng, lịch bảo trì, nguồn chính thức, dạy thử hoặc người kiểm định | Ghi khẳng định, phạm vi và lý do; không biến tín hiệu thành kết luận. |
 | `references.md` chịu ảnh hưởng | Kho dự án hiện hành | Đọc sổ khẳng định, sổ bằng chứng và nơi khẳng định được dùng. |
 | Nội dung phụ thuộc | Kho dự án hiện hành | Đọc phần bài học, lộ trình hoặc tài nguyên sử dụng khẳng định. |
+| Tín hiệu ngoài lịch | Thông báo chính thức, yêu cầu trước sử dụng, dạy thử, người dùng hoặc người kiểm định | Ghi tín hiệu và nguồn trong `trigger-input.md`; không yêu cầu bộ quét cục bộ tự suy ra thay đổi bên ngoài. |
 | Ràng buộc an toàn và quyết định | Quy tắc hiện hành, người dùng hoặc chủ sở hữu giáo trình | Xác định điều gì có thể cập nhật theo dữ kiện và điều gì cần cổng quyết định. |
 
 ### 5.2. Đầu ra và chủ sở hữu
@@ -156,7 +177,9 @@ Any state ──→ Awaiting decision ──→ return to the affected state
 |---|---|---|
 | Hàng đợi dẫn xuất `volatile-claim-queue.md` | Điều phối viên | Điều phối viên kiểm tra cấu trúc và phạm vi |
 | Phán quyết, nguồn và siêu dữ liệu trong `references.md` | Người nghiên cứu | Người kiểm định độc lập cho khẳng định trọng yếu |
-| Bản đồ ảnh hưởng và bản bàn giao | Người phân tích ảnh hưởng | Quy trình nhận xác nhận đủ điều kiện bắt đầu |
+| `impact-map.md` | Người phân tích ảnh hưởng | Người kiểm định độc lập cho ảnh hưởng trọng yếu |
+| `review.md` | Người kiểm định độc lập | Điều phối viên kiểm tra tính đầy đủ, không đổi phán quyết |
+| `handoff.md` | Điều phối viên | Quy trình nhận xác nhận đủ điều kiện bắt đầu hoặc ghi trì hoãn/chặn rõ ràng |
 | Cờ chặn sử dụng an toàn | Điều phối viên dựa trên bằng chứng đã kiểm tra | Người kiểm định độc lập hoặc Chủ sở hữu giáo trình |
 | Hồ sơ quyết định | Chủ sở hữu giáo trình khi có đánh đổi | Chủ sở hữu giáo trình |
 
@@ -205,9 +228,18 @@ Spawn verification: required only when the runtime lacks compatible recorded evi
 **Kỹ năng:** `$curriculum-reference-research`
 
 1. Xác định chế độ, điều kiện kích hoạt, phạm vi kho và ngày tham chiếu.
-2. Chạy [`scan_volatile_claims.py`](scripts/scan_volatile_claims.py) theo chế độ chỉ đọc để tìm `references.md`, kiểm tra cấu trúc và lập hàng đợi.
-3. Lưu hàng đợi tại `.agents/workflow-runs/<run-id>/volatile-claim-queue.md` cùng mã lượt chạy.
-4. Đưa các khẳng định thiếu cấu trúc, thiếu nguồn, ngày kiểm tra, vị trí sử dụng hoặc điều kiện kiểm tra lại vào hàng đợi sửa dữ liệu; không coi là đã kiểm chứng.
+2. Ghi `trigger-input.md`. Bộ quét cục bộ chỉ phát hiện điều kiện theo ngày, verdict cần xử lý và lỗi ledger; tín hiệu theo phiên bản, sự kiện hoặc trước sử dụng phải được đưa vào tường minh từ đầu vào này.
+3. Chạy [`scan_volatile_claims.py`](scripts/scan_volatile_claims.py) theo chế độ chỉ đọc để tìm `references.md`, kiểm tra cả sổ khẳng định lẫn sổ bằng chứng và lập hàng đợi. Dùng `--release-sweep` cho rà soát trước phát hành để kiểm tra thêm độ bao phủ của các gói bài học đã được soạn.
+4. Lưu hàng đợi tại `.agents/workflow-runs/<run-id>/volatile-claim-queue.md` cùng mã lượt chạy.
+5. Hợp nhất tín hiệu ngoài lịch vào hàng đợi mà không thay dữ liệu gốc. Một claim có thể giữ nhiều lý do kích hoạt.
+6. Đưa các khẳng định thiếu cấu trúc, thiếu nguồn, ngày kiểm tra, vị trí sử dụng hoặc điều kiện kiểm tra lại vào hàng đợi sửa dữ liệu; không coi là đã kiểm chứng.
+7. Trong lượt trước phát hành, nếu có gói bài học đã soạn nhưng không có `references.md`, hoặc phạm vi dùng chung/lộ trình chứa claim ngoài độc lập nhưng chưa khai báo ledger, ghi `Coverage not verified`; không được kết luận toàn kho không có claim đến hạn.
+
+Lệnh chuẩn, thêm `--release-sweep` ở chế độ rà soát trước phát hành:
+
+```text
+python .agents/workflows/scripts/scan_volatile_claims.py --root ai-native-builder --as-of YYYY-MM-DD --output .agents/workflow-runs/<run-id>/volatile-claim-queue.md --strict [--release-sweep]
+```
 
 **Điều kiện kết thúc:** có hàng đợi giới hạn hoặc kết luận không có khẳng định nào thuộc phạm vi.
 
@@ -242,6 +274,17 @@ Mỗi đơn vị chỉ chứa một khẳng định hoặc một nhóm mệnh đ
 
 Trong `references.md`, cập nhật phán quyết, nguồn thuận/nghịch, ngày kiểm tra, phiên bản/phạm vi, giới hạn và điều kiện kiểm tra lại. Không sao chép hướng dẫn bên ngoài; chỉ ghi kết luận cần cho quyết định giáo trình.
 
+Không xóa bằng chứng cũ chỉ vì có nguồn mới. Giữ hàng nguồn cũ khi nó còn giúp giải thích lịch sử và ghi rõ giới hạn hoặc việc đã bị thay thế. Mỗi lần verdict, phiên bản/phạm vi hoặc tập nguồn trọng yếu thay đổi, thêm một hàng vào phần `Nhật ký làm mới` trong `references.md`:
+
+```md
+## Nhật ký làm mới
+
+| Run ID | Mã khẳng định | Thời điểm | Giá trị trước | Giá trị sau | Nguồn thêm/thay thế | Lý do |
+|---|---|---|---|---|---|---|
+```
+
+Git history là bằng chứng bổ trợ, không thay nhật ký này.
+
 | Phán quyết | Xử lý dữ liệu tham khảo |
 |---|---|
 | `Supported` | Cập nhật ngày, phạm vi và điều kiện kiểm tra lại. |
@@ -257,7 +300,7 @@ Trong `references.md`, cập nhật phán quyết, nguồn thuận/nghịch, ng�
 **Chủ trì:** Người phân tích ảnh hưởng  
 **Kỹ năng:** `$curriculum-quality-review`
 
-Lần từ từng mã khẳng định qua vị trí sử dụng tới bài học, lộ trình, tài nguyên dùng chung, bằng chứng dạy thử và trạng thái chất lượng. Với mỗi tệp, ghi `No change`, `Metadata updated`, `Update required`, `Reverify`, `Invalidate`, `Block use` hoặc `Not verified`, cùng lý do và quy trình sở hữu.
+Lần từ từng mã khẳng định qua vị trí sử dụng tới bài học, lộ trình, tài nguyên dùng chung, bằng chứng dạy thử và trạng thái chất lượng. Với mỗi tệp, ghi trong `impact-map.md` một trong các giá trị `No change`, `Metadata updated`, `Update required`, `Reverify`, `Invalidate`, `Block use` hoặc `Not verified`, cùng lý do, phiên bản tệp đã đọc và quy trình sở hữu.
 
 Nếu khẳng định `High` hoặc `Critical` bị `Contradicted`, `Not supported` hoặc `Inconclusive` và liên quan an toàn, dữ liệu, quyền hạn, chi phí hoặc hành động bên ngoài, Điều phối viên phải đặt cờ `Block use` cho phạm vi phụ thuộc và bàn giao ngay. Cờ này là biện pháp phòng ngừa, không phải kết luận rằng toàn bộ giáo trình thất bại.
 
@@ -278,7 +321,7 @@ Chủ sở hữu ghi `Accept`, `Reject`, `Defer` hoặc `Escalate` trong hồ s�
 **Chủ trì:** Người kiểm định độc lập  
 **Kỹ năng:** `$curriculum-quality-review`
 
-Kiểm định bắt buộc với khẳng định `High` hoặc `Critical`, phán quyết đổi, nguồn thay thế làm đổi phạm vi, cờ `Block use` hoặc mọi lượt có bàn giao sửa nội dung. Người kiểm định phải đọc trực tiếp mệnh đề, nguồn, phạm vi, bằng chứng nghịch, bảng ảnh hưởng và điều kiện kiểm tra lại.
+Kiểm định bắt buộc với khẳng định `High` hoặc `Critical`, phán quyết đổi, nguồn thay thế làm đổi phạm vi, cờ `Block use` hoặc mọi lượt có bàn giao sửa nội dung. Người kiểm định phải đọc trực tiếp mệnh đề, nguồn, phạm vi, bằng chứng nghịch, bảng ảnh hưởng và điều kiện kiểm tra lại, rồi ghi kết quả theo từng claim vào `review.md`.
 
 Với khẳng định `Low` hoặc `Medium` chỉ cập nhật siêu dữ liệu mà không đổi phán quyết hay ảnh hưởng, có thể kiểm tra cục bộ có ghi bằng chứng. Tuy nhiên, lượt rà soát trước phát hành phải có kiểm định độc lập cho toàn bộ hàng đợi được đóng.
 
@@ -291,7 +334,8 @@ Với khẳng định `Low` hoặc `Medium` chỉ cập nhật siêu dữ liệu
 1. Bàn giao phần cần sửa sang đúng quy trình sở hữu, kèm mã khẳng định, phán quyết, nguồn, tệp ảnh hưởng, cờ chặn, thay đổi nhỏ nhất và điều kiện kiểm định lại.
 2. Nếu thay đổi được áp dụng, đánh dấu bằng chứng dạy thử hoặc kiểm định cũ bị ảnh hưởng; không xóa lịch sử.
 3. Ghi điều kiện kiểm tra lại tiếp theo cho mọi khẳng định đã xử lý.
-4. Đóng lượt khi tất cả đơn vị được cập nhật, bàn giao, trì hoãn có lý do hoặc chặn sử dụng có chủ sở hữu.
+4. Trong `handoff.md`, mỗi đơn vị phải có trạng thái `Accepted`, `Deferred` kèm chủ sở hữu và ngày/điều kiện quay lại, hoặc `Blocked` kèm biện pháp bảo vệ và điều kiện gỡ chặn.
+5. Ghi một kết quả lượt chạy trong bốn giá trị ở mục 4. Chỉ đóng lượt khi tất cả đơn vị được cập nhật hoặc có trạng thái bàn giao hợp lệ; `Awaiting decision` không phải kết quả đóng.
 
 **Điều kiện kết thúc:** không còn khẳng định trọng yếu không có phán quyết, chủ sở hữu hoặc điều kiện kiểm tra lại.
 
@@ -300,10 +344,11 @@ Với khẳng định `Low` hoặc `Medium` chỉ cập nhật siêu dữ liệu
 ### 8.1. Kiểm tra xác định
 
 1. Mọi `references.md` có ít nhất hai bảng chuẩn, mã khẳng định không trùng trong phạm vi quét và không có hàng bắt buộc bị thiếu; bảng đối chiếu tiền lệ, nếu có, không thay hai bảng này.
-2. Mọi khẳng định có nguồn, ngày kiểm tra, phiên bản/phạm vi, vị trí sử dụng và điều kiện kiểm tra lại.
+2. Mọi khẳng định có ít nhất một hàng bằng chứng liên kết bằng mã; cặp claim–source không trùng, cùng một mã nguồn không ánh xạ tới nhiều nguồn khác nhau trong một `references.md`, và không có bằng chứng trỏ tới claim không tồn tại; các trường ngày, chiều bằng chứng và giá trị chuẩn đều hợp lệ.
 3. Mọi khẳng định `Version-bound` có phiên bản/phạm vi; mọi khẳng định `Rapidly changing` có ngày kiểm tra tiếp theo hoặc điều kiện trước khi sử dụng.
 4. Hàng đợi dẫn xuất chỉ có tệp tham chiếu và siêu dữ liệu cần thiết, không sao chép khẳng định thành nguồn chuẩn.
 5. Phép quét tự động không truy cập mạng và không sửa `references.md`.
+6. Lượt trước phát hành có kết quả kiểm tra độ bao phủ ledger; `Coverage not verified` ngăn kết luận “không có claim đến hạn”.
 
 ### 8.2. Kiểm định ngữ nghĩa
 
@@ -334,12 +379,15 @@ Mỗi đơn vị công việc chỉ có một vai trò chính, một nhóm khẳ
 ```text
 Role: <Orchestrator | Researcher | Impact analyst | Independent reviewer>
 Mode: <Targeted refresh | Release sweep>
+Run directory: <.agents/workflow-runs/run-id>
 Claim IDs: <explicit IDs>
+Trigger inputs: <dated, version, event, pre-use, or discovery signals>
 Allowed files: <explicit file list>
 Canonical inputs: <references.md, dependent files, relevant rules>
 Research budget: <maximum targeted searches>
 Required skills: <skill names or None>
 Required outputs: <verdict, evidence rows, impact map, handoff>
+Local gate: <machine checks and semantic pass conditions>
 Decision status: <Not required | Awaiting decision | Recorded>
 Stop conditions: <missing source access, unresolved material conflict, scope expansion, budget exhausted>
 Do not: <survey tools, change dependent content, select product preference, self-approve material verdict>
@@ -362,8 +410,22 @@ Tác nhân không tự chuyển giai đoạn. Nó trả về bằng chứng đã
 2. Mọi khẳng định đã xử lý có phán quyết, nguồn thuận/nghịch, phiên bản/phạm vi, ngày và điều kiện kiểm tra lại.
 3. Mọi ảnh hưởng tới bài học, lộ trình, kiến trúc, dạy thử hoặc an toàn có chủ sở hữu và bàn giao phù hợp.
 4. Cờ `Block use` còn lại có lý do, phạm vi, người chịu trách nhiệm và điều kiện gỡ chặn.
-5. Khẳng định trọng yếu, phán quyết đã đổi và lượt trước phát hành đã qua kiểm định độc lập hoặc ghi trung thực `Not verified`.
+5. Khẳng định trọng yếu, phán quyết đã đổi và lượt trước phát hành đã qua kiểm định độc lập. `Not verified` chỉ cho phép kết thúc bằng `Closed with handoff` hoặc `Blocked from use` khi giới hạn, chủ sở hữu, phạm vi kiểm tra lại và biện pháp bảo vệ đã rõ; nó không đủ cho `Refreshed`.
 6. Không có nội dung phụ thuộc nào bị sửa trực tiếp ngoài `references.md` và hồ sơ quyết định mà quy trình này sở hữu.
 7. Nếu có tác nhân con, sổ thực thi đạt điều kiện của `agent-dispatch-protocol.md`.
+8. `handoff.md` có xác nhận `Accepted`, hoặc trạng thái `Deferred`/`Blocked` đủ điều kiện; không còn bàn giao chỉ tồn tại trong hội thoại.
+9. Điều phối viên đã ghi đúng một kết quả lượt chạy: `Refreshed`, `Closed with handoff` hoặc `Blocked from use`. `Awaiting decision` giữ lượt mở.
 
 Quy trình này xác nhận bằng chứng và tuyến xử lý của thông tin dễ lỗi thời. Nó không tự chứng minh hiệu quả học tập, không thay kiểm định dạy thử và không thay quyết định sản phẩm của con người.
+
+## 11. Điều kiện chuyển quy trình sang `Active`
+
+Quy trình chỉ chuyển từ `Proposed` sang `Active` khi người dùng chấp nhận kết quả của một lượt chạy thử có kiểm soát và các điều kiện sau đều đạt:
+
+1. Bộ quét xác minh được cả sổ khẳng định, sổ bằng chứng, liên kết claim–source và độ bao phủ của gói bài học trong chế độ trước phát hành.
+2. Thử ít nhất ba đường: claim đến hạn vẫn `Supported`; claim đổi phạm vi thành `Partially supported`; claim `High` hoặc `Critical` bị làm yếu và dẫn tới `Block use` hoặc bàn giao bắt buộc.
+3. Mọi đầu ra của lượt thử nằm ở đường dẫn chuẩn, có thể tái lập từ nguồn và không biến hàng đợi dẫn xuất thành nguồn chuẩn thứ hai.
+4. Một verdict hoặc phạm vi thay đổi để lại lịch sử trước/sau và không xóa bằng chứng cũ cần cho truy vết.
+5. Người kiểm định độc lập có thể lần từ nội dung phụ thuộc tới claim, nguồn, verdict, ảnh hưởng, bàn giao và điều kiện kiểm tra lại.
+6. Kết quả đóng phân biệt được `Refreshed`, `Closed with handoff`, `Blocked from use` và `Awaiting decision`; không có nội dung chưa được bảo vệ bị trình bày như đã làm mới xong.
+7. Thử nghiệm xác nhận workflow không sửa trực tiếp bài học, lộ trình, kiến trúc hoặc trạng thái dạy thử ngoài phạm vi sở hữu.
