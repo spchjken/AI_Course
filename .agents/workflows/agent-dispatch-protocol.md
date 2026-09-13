@@ -1,6 +1,6 @@
 # Giao thức phân công tác nhân khi chạy quy trình
 
-- **Trạng thái:** `Proposed — kiểm chứng qua từng lượt chạy thực tế`
+- **Trạng thái:** `Active` — đã được người dùng duyệt
 - **Mục tiêu:** giúp Điều phối viên quyết định tại thời điểm thực thi nên tự làm, tái sử dụng tác nhân, sinh tác nhân mới hay chờ đầu vào.
 - **Áp dụng:** mọi quy trình có từ hai vai trò trở lên hoặc yêu cầu kiểm định độc lập.
 
