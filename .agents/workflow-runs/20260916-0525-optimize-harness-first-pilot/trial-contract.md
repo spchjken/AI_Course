@@ -32,3 +32,9 @@ Stop before review if a source is modified, a path is outside scope, metadata is
 ## Decision status
 
 `Approved trial`; `Ratify` is not granted. After independent review, the owner must choose `Ratify`, `Revise`, `Reject`, `Defer`, or `No change` for this run. A passing probe does not make the workflow `Active`.
+
+## Post-trial decision
+
+- Owner outcome: `Ratify`, explicitly recorded on 2026-09-16 after the independent governance review returned `Pass`.
+- Ratified scope: integrate the reviewed run evidence and bounded candidate pattern as an operational record; keep `context-index.json` and `context-package.md` derived, run-scoped, and non-canonical.
+- Not ratified: repository-wide metadata migration, RAG/graph adoption, canonical source edits, or workflow promotion to `Active`.

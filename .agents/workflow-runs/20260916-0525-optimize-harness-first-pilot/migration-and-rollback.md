@@ -18,5 +18,6 @@ An owner `Ratify` decision would start a separate migration change. That change 
 
 ## Handoff
 
-- Owner outcome is still required: `Ratify`, `Revise`, `Reject`, `Defer`, or `No change`.
-- Derived index expiry is tied to that outcome and one audit cycle; no derived artifact becomes canonical by retention alone.
+- Owner outcome: `Ratify` on 2026-09-16.
+- Derived index expiry remains tied to the ratified run's retention policy and one audit cycle; no derived artifact becomes canonical by retention alone.
+- If the ratified pattern is later implemented at a canonical target, that is a separate change with its own target, commit, review, drift check and rollback record.

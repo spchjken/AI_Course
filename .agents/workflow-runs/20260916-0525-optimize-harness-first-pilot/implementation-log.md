@@ -21,3 +21,9 @@
 - Regression checks now persist path/title fallback, local-link integrity, and derived-index schema results in `regression-results.json`.
 - Contract and rollback evidence were added without changing the locked query set, thresholds, or canonical sources.
 - Canonical commit: none; this trial remains on the isolated run branch pending an explicit owner outcome.
+
+## Ratify handoff
+
+- Owner outcome: `Ratify` on 2026-09-16.
+- Integration unit: reviewed evidence commit `ae653cd` plus the ratification decision record; no canonical goal, workflow, rule, skill, or metadata index is changed.
+- The derived index remains a disposable operational artifact until a separately scoped implementation target is approved.

@@ -8,10 +8,11 @@
 - Run branch: `codex/20260916-0525-optimize-harness-first-pilot`
 - Human gate: user request on 2026-09-16 — `Approve trial` for this bounded pilot.
 - Source changes: none before `Ratify`; trial artifacts are derived and disposable.
-- Current run status: `Awaiting decision`
+- Owner outcome: `Ratify` explicitly recorded on 2026-09-16.
+- Current run status: `In progress` — integrating the reviewed run commit into `main`, then closing after post-integration checks.
 
 ## Planned handoff
 
-`validation-report.md` → `governance-review.md` → owner decision (`Ratify`, `Revise`, `Reject`, `Defer`, or `No change`).
+`validation-report.md` → `governance-review.md` → owner decision (`Ratify`) → post-integration validation → `Closed`.
 
-This run does not make the workflow `Active` and does not authorize repository-wide metadata migration.
+Ratify integrates the reviewed run evidence and bounded candidate pattern as an operational record. The derived index remains run-scoped and non-canonical; this run does not make the workflow `Active` and does not authorize repository-wide metadata migration.

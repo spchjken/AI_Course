@@ -19,4 +19,4 @@
 
 ## Limits and handoff
 
-This is an eight-query deterministic routing probe, not general evidence for other goals, models, query distributions, or repositories. The verdict does not grant owner `Ratify`, does not integrate the candidate into `main`, and does not make the workflow `Active`. The run remains `Awaiting decision` until the owner records `Ratify`, `Revise`, `Reject`, `Defer`, or `No change`.
+This is an eight-query deterministic routing probe, not general evidence for other goals, models, query distributions, or repositories. The reviewer verdict did not itself grant `Ratify`; the owner subsequently recorded `Ratify` on 2026-09-16. Ratify authorizes integration of this reviewed operational record, not canonical metadata migration or workflow `Active` status.
