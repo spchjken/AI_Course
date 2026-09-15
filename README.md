@@ -55,7 +55,7 @@ Xem nội dung và điều kiện dùng từng kỹ năng trong [`.agents/skills
 | [`pilot-and-validate.md`](.agents/workflows/pilot-and-validate.md) | Dạy thử, phân tích bằng chứng thực tế và xác nhận chất lượng. | `Proposed` |
 | [`change-curriculum-architecture.md`](.agents/workflows/change-curriculum-architecture.md) | Thay đổi mục tiêu, quan hệ phụ thuộc hoặc cam kết cấp giáo trình. | `Proposed` *(đã chạy thử; chờ quyết định)* |
 | [`refresh-volatile-content.md`](.agents/workflows/refresh-volatile-content.md) | Rà soát thông tin phụ thuộc công cụ, API, quyền hạn hoặc chính sách. | `Proposed` |
-| [`optimize-agent-harness-system.md`](.agents/workflows/optimize-agent-harness-system.md) | Định khung việc cải tiến rules, skills, workflows và điều phối tác nhân dựa trên bằng chứng vận hành. | `Placeholder` |
+| [`optimize-agent-harness-system.md`](.agents/workflows/optimize-agent-harness-system.md) | Điều tra và chạy thử có kiểm soát cải tiến rules, skills, workflows và điều phối tác nhân dựa trên bằng chứng vận hành. | `Proposed` |
 
 Đọc [kiến trúc và ranh giới giữa các quy trình](.agents/workflows/README.md) trước khi thực hiện công việc nhiều giai đoạn hoặc cần bàn giao giữa nhiều vai trò.
 

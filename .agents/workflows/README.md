@@ -147,7 +147,7 @@ Không bàn giao bằng trí nhớ hội thoại. Thông tin cần cho lượt s
 - Chuẩn bị dạy thử hoặc đã dạy thử → `pilot-and-validate`.
 - Thay đổi mục tiêu, quan hệ phụ thuộc hoặc cam kết → `change-curriculum-architecture`.
 - Kiểm tra lại khẳng định về công cụ hoặc API → `refresh-volatile-content`.
-- Cải tiến cách tác nhân được hướng dẫn, điều phối hoặc kiểm chứng → `optimize-agent-harness-system` (chỉ định tuyến và thiết kế; chưa được thực thi).
+- Cải tiến cách tác nhân được hướng dẫn, điều phối hoặc kiểm chứng → `optimize-agent-harness-system` (`Proposed`; mỗi controlled trial cần Chủ sở hữu cho phép tường minh).
 
 Nếu một tác vụ chạm nhiều quy trình, bắt đầu tại quy trình chịu trách nhiệm cho nguyên nhân gốc rồi bàn giao. Không gộp toàn bộ vòng đời vào một yêu cầu dành cho tác nhân AI nhẹ.
 
@@ -158,5 +158,6 @@ Nếu một tác vụ chạm nhiều quy trình, bắt đầu tại quy trình c
 3. Thiết kế và chạy thử có kiểm soát `pilot-and-validate` trước buổi dạy thử đầu tiên.
 4. Chạy thử có kiểm soát `change-curriculum-architecture` khi xuất hiện thay đổi cấu trúc đầu tiên.
 5. Thiết kế và chạy thử có kiểm soát `refresh-volatile-content` trước khi phát hành hoặc bắt đầu chu kỳ bảo trì.
+6. Chạy thử có kiểm soát `optimize-agent-harness-system` trên một vấn đề harness có baseline và rollback hẹp trước khi cân nhắc `Active`.
 
 Tệp ở trạng thái `Placeholder` chỉ ghi ranh giới và yêu cầu thiết kế. Không tự bổ sung giai đoạn rồi thực thi khi chưa được người dùng duyệt.

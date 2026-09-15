@@ -1,10 +1,10 @@
 # Kế hoạch khung hoàn thiện `optimize-agent-harness-system`
 
-- **Loại tài liệu:** Ghi chú thiết kế, không phải kế hoạch thực thi.
+- **Loại tài liệu:** Ghi chú thiết kế đã hoàn thành, không phải kế hoạch thực thi.
 - **Workflow liên quan:** [`optimize-agent-harness-system.md`](../optimize-agent-harness-system.md).
-- **Trạng thái:** Đang thiết kế.
-- **Mục tiêu gần:** Chuẩn bị đủ quyết định và đặc tả để Chủ sở hữu kho có thể cân nhắc chuyển workflow từ `Placeholder` sang `Proposed`.
-- **Không cho phép:** Chạy workflow, giao agent sửa harness, di trú metadata toàn kho hoặc coi các phương án dưới đây là quyết định đã chấp thuận.
+- **Trạng thái:** Đã hoàn thành vai trò; giữ làm bối cảnh lịch sử.
+- **Kết quả:** Đặc tả vận hành đã được chuyển vào workflow `Proposed`; D6 độc lập đã `Pass` và kế hoạch pilot riêng đang ở trạng thái `Draft`.
+- **Không cho phép:** Dùng ghi chú này thay workflow chuẩn, tự chạy trial, giao agent sửa harness hoặc di trú metadata toàn kho.
 
 ## 1. Kết quả cần có trước khi đề nghị `Proposed`
 
@@ -163,4 +163,4 @@ Ghi chú này hoàn thành vai trò khi:
 2. Workflow đã chứa đặc tả thực thi đầy đủ và không phụ thuộc vào ghi chú này để chạy.
 3. D6 được thực hiện bởi bên kiểm định độc lập và mọi lỗi chặn đã được xử lý.
 4. Có hồ sơ quyết định về việc giữ `Placeholder`, chuyển `Proposed` hoặc dừng thiết kế.
-5. Nếu chuyển `Proposed`, một kế hoạch pilot riêng được tạo với phạm vi và quyền sửa cụ thể.
+5. Nếu chuyển `Proposed`, một kế hoạch pilot riêng được tạo với phạm vi và quyền sửa cụ thể tại [`optimize-agent-harness-first-pilot.md`](optimize-agent-harness-first-pilot.md).
