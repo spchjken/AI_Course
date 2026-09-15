@@ -1,0 +1,9 @@
+﻿{
+    "QueryCount":  8,
+    "BaselineCorrect":  1,
+    "CandidateCorrect":  8,
+    "BaselineReads":  24,
+    "CandidateReads":  6,
+    "CandidateFalseAuthority":  0,
+    "CandidateSourceVerifications":  6
+}

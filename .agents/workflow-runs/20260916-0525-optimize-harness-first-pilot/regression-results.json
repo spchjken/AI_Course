@@ -1,0 +1,6 @@
+﻿{
+    "PathTitleFallback":  true,
+    "LinkIntegrity":  true,
+    "IndexSchema":  true,
+    "RegressionPass":  true
+}

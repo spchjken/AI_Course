@@ -1,0 +1,32 @@
+{
+  "index_version": "pilot-0.1",
+  "derived": true,
+  "canonical": false,
+  "scope": "20260916-0525-optimize-harness-first-pilot",
+  "entries": [
+    {
+      "id": "goal-g09",
+      "path": "ai-native-builder/goals/g09-nang-cap-harness-rules-skills-workflows/README.md",
+      "type": "goal-design",
+      "authority": "canonical goal design",
+      "status": "source",
+      "keywords": ["G09", "metadata", "index", "repeated evidence", "prerequisites", "observable outcome", "rules", "skills", "workflow", "goal"]
+    },
+    {
+      "id": "workflow-optimize-harness",
+      "path": ".agents/workflows/optimize-agent-harness-system.md",
+      "type": "workflow",
+      "authority": "proposed operational workflow",
+      "status": "Proposed",
+      "keywords": ["positive", "negative", "regression", "comparison", "rollback", "canonical source", "no canonical source", "trial", "pilot", "boundary", "Active"]
+    },
+    {
+      "id": "decision-harness-proposed",
+      "path": ".agents/decisions/2026-09-15-agent-harness-workflow-proposed.md",
+      "type": "decision",
+      "authority": "repository governance decision",
+      "status": "approved",
+      "keywords": ["decision", "record", "authorize", "required", "Proposed", "Active", "trial", "Ratify", "RAG", "migration", "controlled", "owner"]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+id	class	query	expected
+P1	positive	Which goal defines when metadata or indexing should be automated only after repeated evidence?	ai-native-builder/goals/g09-nang-cap-harness-rules-skills-workflows/README.md
+P2	positive	Which workflow requires positive negative regression and comparison tests?	.agents/workflows/optimize-agent-harness-system.md
+P3	positive	Which decision record says this workflow remains Proposed and does not authorize a trial automatically?	.agents/decisions/2026-09-15-agent-harness-workflow-proposed.md
+P4	positive	What are the prerequisites and observable outcome for G09?	ai-native-builder/goals/g09-nang-cap-harness-rules-skills-workflows/README.md
+N1	negative	Which unlisted plugin did this pilot modify?	OUT_OF_SCOPE
+N2	negative	Who approved production deployment of a graph database in this pilot?	OUT_OF_SCOPE
+R1	regression	Where is the rollback and no-canonical-source boundary for this pilot?	.agents/workflows/optimize-agent-harness-system.md
+R2	regression	What decision is required before a Proposed workflow becomes Active?	.agents/decisions/2026-09-15-agent-harness-workflow-proposed.md
