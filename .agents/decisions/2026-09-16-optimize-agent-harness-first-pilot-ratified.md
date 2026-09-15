@@ -7,6 +7,7 @@
 - Run: `.agents/workflow-runs/20260916-0525-optimize-harness-first-pilot/`
 - Baseline: `035c8c1abb7363485b412b4029db98bde1ed6141`
 - Reviewed evidence commit: `ae653cd` (`Record optimize harness first pilot`)
+- Integrated target commit: `de35d797306000b363d518f23c7829dd7b1b7c64` on local `main`
 
 ## Decision
 
@@ -24,6 +25,6 @@ Ratify the bounded pilot result and integrate its reviewed operational record in
 - Final probe: 8/8 correct, zero false authority, six candidate source reads versus 24 baseline reads.
 - Independent governance review: `Pass`; no remaining `Blocker`, `Major`, or `Minor` findings.
 - Regression evidence: path/title fallback, local-link integrity, and derived-index schema all `Pass`.
-- Post-integration validation and final target commit are recorded in the pilot run's `post-ratify-validation.md`.
+- Post-integration validation and final target commit are recorded in the pilot run's `post-ratify-validation.md`; all affected checks passed.
 
 The workflow remains `Proposed`; this ratification applies only to the bounded pilot record and pattern described above.

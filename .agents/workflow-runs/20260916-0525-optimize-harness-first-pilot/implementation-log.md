@@ -27,3 +27,4 @@
 - Owner outcome: `Ratify` on 2026-09-16.
 - Integration unit: reviewed evidence commit `ae653cd` plus the ratification decision record; no canonical goal, workflow, rule, skill, or metadata index is changed.
 - The derived index remains a disposable operational artifact until a separately scoped implementation target is approved.
+- Target integration: `de35d797306000b363d518f23c7829dd7b1b7c64` on local `main`; post-integration checks are recorded in `post-ratify-validation.md`.

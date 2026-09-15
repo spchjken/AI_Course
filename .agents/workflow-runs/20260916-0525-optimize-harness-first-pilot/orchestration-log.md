@@ -13,7 +13,7 @@
 
 | Mã | Định danh | Cha | Vai trò/đơn vị | Hành động | Tệp ghi | Trạng thái |
 |---|---|---|---|---|---|---|
-| A1 | `/root` | none | Orchestrator — A through G and I | `root` | Run artifacts and ratification handoff | `owner Ratify recorded; integrating reviewed commit; post-integration check pending` |
+| A1 | `/root` | none | Orchestrator — A through G and I | `root` | Run artifacts and ratification handoff | `completed; Ratify integrated to main; post-integration checks Pass; run Closed` |
 | A2 | `/root/first_pilot_governance_review` | `/root` | Governance reviewer — H | `fresh-review` | `none` | `cancelled; not-verified (runtime timeout, interrupted)` |
 | A3 | `/root/first_pilot_governance_review_retry` | `/root` | Independent governance reviewer — H | `fresh-review` | `none` | `completed initial Fail and final Pass after accepted repairs` |
 
@@ -26,3 +26,10 @@ The reviewer must receive only the source files, trial contract, candidate index
 - Target: local `main`, baseline `035c8c1`; target drift was checked before integration and was absent.
 - Integration boundary: keep the candidate index and context package run-scoped/non-canonical; do not edit the three reverified sources, build RAG/graph, or promote the workflow to `Active`.
 - Required before close: post-integration probe, canonical diff, link/schema checks, and final handoff record.
+
+## Phase I completion
+
+- Integrated reviewed evidence commit: `ae653cd`.
+- Target commit after Ratify: `de35d797306000b363d518f23c7829dd7b1b7c64` on local `main`.
+- Post-integration evidence: `post-ratify-validation.md`.
+- Result: all affected checks `Pass`; no canonical source drift; run `Closed`.

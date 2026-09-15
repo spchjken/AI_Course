@@ -65,4 +65,4 @@ This is a deterministic routing-mechanics probe over eight synthetic questions, 
 
 - G result: `Pass` after accepted bounded repair.
 - Independent governance review: initial fresh review `Fail` with F-REVIEW-001..004; after accepted repairs, fresh reviewer A3 returned `Pass` with no remaining Blocker/Major/Minor findings.
-- Owner outcome: `Ratify` recorded on 2026-09-16; post-integration validation remains to be recorded before closure.
+- Owner outcome: `Ratify` recorded on 2026-09-16; post-integration validation `Pass` is recorded in `post-ratify-validation.md`.
