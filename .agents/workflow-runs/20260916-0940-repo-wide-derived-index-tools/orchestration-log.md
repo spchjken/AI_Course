@@ -13,5 +13,11 @@
 | 2026-09-16 09:47 | W7 | independent reviewer | Completed first read-only governance review | FAIL findings recorded and fixed |
 | 2026-09-16 10:15 | W7 | independent reviewer | Completed re-review after worker disposition | PASS-WITH-FINDINGS; no implementation blocker |
 | 2026-09-16 10:20 | W8 | owner | Ratified the implementation | decision record `2026-09-16-repo-wide-derived-index-tools-ratified.md`; integration authorized |
+| 2026-09-16 10:24 | W9 | coordinator | Fast-forwarded the ratified branch into `main` | integration commit `54c58bd9b069c0768fe7d32f6290997bda02d66b` |
+| 2026-09-16 10:27 | W10 | coordinator | Ran post-ratify validation on `main` | 8 tests pass; 158 entries; strict check and validator pass; deterministic rebuild true |
+| 2026-09-16 10:28 | W11 | coordinator | Closed the run and prepared final derived-index refresh | `post-ratify-validation.md`; push follows final refresh commit |
 
-Next: merge to `main`, run post-ratify validation, refresh the derived index, and push `origin/main`.
+The ratified implementation is closed for integration. The final derived-index
+refresh is committed after this closure record, then `main` is pushed to
+`origin/main`. Scheduler and workflow-hook automation remain deferred by the
+trial decision.
