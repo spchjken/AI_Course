@@ -94,7 +94,7 @@ Thay đổi cục bộ trong bài học không cần đi qua `change-curriculum-
 
 | Quy trình | Trạng thái | Khi dùng | Đầu ra hoặc bàn giao chính |
 |---|---|---|---|
-| [`complete-goal-lessons.md`](complete-goal-lessons.md) | `Active` | Biến bản định hướng của một `gNN` thành bộ tài liệu bài học đã được kiểm định độc lập, có khảo sát nguồn ngoài và phân xử finding trọng yếu. | `Pilot-ready` hoặc `Release-ready`, kèm sản phẩm trung gian và bản bàn giao cho dạy thử. |
+| [`complete-goal-lessons.md`](complete-goal-lessons.md) | `Proposed` | Biến bản định hướng của một `gNN` thành bộ tài liệu bài học đã được kiểm định độc lập, có khảo sát nguồn ngoài và phân xử finding trọng yếu; chờ hoàn tất cổng nghiên cứu nguồn bên ngoài. | `Pilot-ready` hoặc `Release-ready`, kèm sản phẩm trung gian và bản bàn giao cho dạy thử. |
 | [`compose-learning-run.md`](compose-learning-run.md) | `Active` | Ghép mục tiêu và bài học chuẩn thành chương trình thực hành ngắn, lộ trình 1-1 hoặc khóa đầy đủ. | Hợp đồng lộ trình, lịch, ma trận bao phủ, mức sẵn sàng, kiểm định độc lập và bàn giao dạy thử. |
 | [`pilot-and-validate.md`](pilot-and-validate.md) | `Proposed` | Dạy thử bài học hoặc lộ trình đã đạt tối thiểu `Pilot-ready` và phân tích bằng chứng thực tế. | Hồ sơ dạy thử ẩn danh, phân tích nguyên nhân, quyết định của chủ sở hữu, trạng thái chất lượng có phạm vi và bàn giao sửa đổi. |
 | [`change-curriculum-architecture.md`](change-curriculum-architecture.md) | `Proposed` *(đã chạy thử; chờ quyết định)* | Thay đổi mục tiêu, quan hệ phụ thuộc, cam kết hoặc ranh giới cấp giáo trình. | Quyết định được ghi, nguồn chuẩn được đồng bộ, ảnh hưởng được kiểm định và chuyển tới quy trình sở hữu. |

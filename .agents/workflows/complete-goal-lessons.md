@@ -1,11 +1,221 @@
-# Quy trình đề xuất: Hoàn thiện bài học theo mục tiêu
+# Quy trình hoàn thiện bài học theo mục tiêu
 
-- **Trạng thái:** `Active` — đã được người dùng duyệt
+- **Trạng thái:** `Proposed` — chờ hoàn tất cơ chế nghiên cứu nguồn bên ngoài và quyết định kích hoạt
+- **Mục tiêu:** biến bản định hướng thiết kế của một mục tiêu `gNN` thành bộ tài liệu bài học có thể kiểm định và tối thiểu `Pilot-ready`, không đồng nhất việc tạo đủ tệp với việc hoàn thành.
 - **Phạm vi:** hoàn thiện lần lượt các bài học chuẩn trong `ai-native-builder/goals/gNN-*`.
+- **Ngoài phạm vi:** đổi kết quả, ranh giới, điều kiện tiên quyết, quan hệ phụ thuộc hoặc cam kết chương trình của mục tiêu; ghép lộ trình; dạy thử và cấp `Validated`; tự động hóa hoặc thay đổi công cụ ngoài phạm vi bằng chứng.
 - **Đơn vị xử lý:** một thư mục mục tiêu trong mỗi vòng lặp.
-- **Mục tiêu:** đưa từng bài học từ bản định hướng thiết kế tới tối thiểu `Pilot-ready` bằng quy trình có bằng chứng; không đồng nhất việc tạo đủ tệp với hoàn thành.
+- **Hồ sơ vận hành:** mỗi mục tiêu dùng một `run-id` riêng trong `.agents/workflow-runs/<run-id>/` và không ghi hồ sơ vận hành vào nguồn chuẩn.
 
-## 1. Nguyên tắc điều phối
+## 1. Khi nào cần dùng
+
+### 1.1. Phép thử kích hoạt
+
+Dùng quy trình này khi cần hoàn thiện hoặc sửa có kiểm soát một bộ bài học
+thuộc đúng một mục tiêu `gNN`, bao gồm:
+
+1. Tạo bộ tài liệu lần đầu từ `README.md` của mục tiêu.
+2. Bổ sung một tệp, sản phẩm trung gian, bằng chứng hoặc cổng kiểm tra còn
+   thiếu trong bộ bài học.
+3. Sửa finding cục bộ sau kiểm định mà không đổi hợp đồng mục tiêu.
+4. Tái nhập một mục tiêu sau khi nguồn chuẩn hoặc bằng chứng được quy trình
+   sở hữu cập nhật.
+
+Không dùng quy trình này để thay đổi kiến trúc mục tiêu, ghép lịch/lộ trình,
+phân tích bằng chứng dạy thử hoặc tự kiểm tra lại claim biến động ngoài phạm vi
+đã khóa.
+
+### 1.2. Định tuyến khi không thuộc phạm vi
+
+| Nguyên nhân gốc | Quy trình chịu trách nhiệm |
+|---|---|
+| Đổi kết quả, ranh giới, điều kiện tiên quyết, quan hệ phụ thuộc hoặc cam kết chương trình | `change-curriculum-architecture` |
+| Ghép mục tiêu, lịch, thời lượng hoặc buổi thực hành | `compose-learning-run` |
+| Thu thập/phân tích bằng chứng từ người học thật hoặc cấp `Validated` | `pilot-and-validate` |
+| Kiểm tra lại claim về công cụ, API, mô hình, giá, quyền hạn hoặc chính sách | `refresh-volatile-content` |
+
+### 1.3. Nguyên tắc điều phối
+
+Phần nguyên tắc chi tiết được giữ trong phụ lục A.1 bên dưới để bảo toàn các
+quy tắc sở hữu tệp và ranh giới đã được dùng trong các lượt trước.
+
+## 2. Hai chế độ thực hiện
+
+| Chế độ | Khi dùng | Đầu ra hợp lệ | Giới hạn |
+|---|---|---|---|
+| `Full completion` | Bộ bài học chưa hoàn chỉnh hoặc chưa có hợp đồng thiết kế/bằng chứng cần thiết. | Bộ tệp chuẩn, hồ sơ nghiên cứu, review độc lập và trạng thái tối đa `Pilot-ready`/`Release-ready`. | Không cấp `Validated`; không bỏ qua B, C, D hoặc E vì muốn nhanh hơn. |
+| `Targeted repair` | Có finding, thiếu cổng hoặc lỗi truy vết cục bộ trong bộ đã tồn tại. | Finding disposition, thay đổi tối thiểu, bằng chứng kiểm tra lại và review lại đúng phạm vi. | Không dùng để âm thầm đổi mục tiêu; finding tranh chấp/thiếu bằng chứng phải qua §6.4 của `agent-dispatch-protocol.md`. |
+
+`Targeted repair` có thể quay lại B, C hoặc D khi finding làm hỏng hợp đồng,
+nghiên cứu hoặc quyền sở hữu tệp. Không coi việc quay lại một giai đoạn là mở
+toàn bộ phạm vi viết lại.
+
+## 3. Sơ đồ tổng thể và trạng thái
+
+```text
+TRIGGER
+  ↓
+INTAKE → PREFLIGHT → LEARNING-DESIGN CONTRACT → CONTENT TRACE
+                                      ↓
+                              EXTERNAL RESEARCH
+                                      ↓
+                                  AUTHORING
+                                      ↓
+                         LOCAL / DETERMINISTIC CHECKS
+                                      ↓
+                            INDEPENDENT REVIEW
+                 ┌───────────────┴────────────────┐
+                 │                                │
+       Finding disposition                    Quality recorded
+                 │                                ↓
+        repair / re-entry /              READY FOR HANDOFF
+        adjudication / stop
+```
+
+`Queued`, `In progress`, `Awaiting decision` và `Closed` là trạng thái của
+lượt chạy. `Preflight`, `Authoring`, `Independent review` và `Ready for
+handoff` là nhãn giai đoạn hoặc điều kiện chuyển tiếp; chúng không thay thế
+trạng thái chất lượng trong `review.md`. `Needs revision`, `Pilot-ready`,
+`Release-ready` và `Validated` chỉ được ghi ở đúng quy trình sở hữu.
+
+## 4. Đầu vào, trách nhiệm chuẩn bị và đầu ra
+
+Điều phối viên phải khóa đầu vào, người cung cấp, người ghi và người nghiệm thu
+trước khi giao từng đơn vị công việc. Các bảng chi tiết và cấu trúc tệp nằm ở
+phụ lục A.2–A.3; phần tóm tắt chuẩn hóa ở đây là hợp đồng điều phối.
+
+### 4.1. Đầu vào tối thiểu
+
+| Đầu vào | Bên cung cấp | Trách nhiệm chuẩn bị |
+|---|---|---|
+| Quy tắc và nguồn chuẩn | Kho dự án | Đọc trực tiếp, ghi baseline và xung đột; không tự tạo nguồn thứ hai. |
+| `README.md` của mục tiêu | Chủ sở hữu mục tiêu | Xác nhận kết quả, phạm vi, sản phẩm, bằng chứng, an toàn và bàn giao. |
+| Điều kiện tiên quyết | Mục tiêu trước/lộ trình liên quan | Xác nhận sản phẩm thật hoặc ghi `Not applicable`/`Missing input` có lý do. |
+| Bằng chứng và kết quả cũ | Hồ sơ mục tiêu/lượt chạy | Chỉ dùng khi truy được phiên bản, phạm vi và giới hạn kết luận. |
+
+### 4.2. Đầu ra và chủ sở hữu
+
+| Đầu ra | Bên tạo/cập nhật | Bên nghiệm thu |
+|---|---|---|
+| `lesson.md`, `practice.md`, `instructor-guide.md`, `assessment.md`, `pilot-feedback-form.md` | Người soạn theo từng đơn vị D | Người tích hợp cục bộ rồi reviewer độc lập |
+| `references.md` | Người nghiên cứu | Reviewer độc lập đối với claim trọng yếu |
+| `review.md` | Reviewer độc lập | Điều phối viên kiểm tra tính đầy đủ, không đổi verdict |
+| `finding-disposition.md` trong hồ sơ run | Bên xử lý finding/evidence adjudicator | Reviewer độc lập kiểm tra đường phản hồi và re-review |
+| `learning-design-contract.md`, `content-trace.md` | Người thiết kế/B0 | Điều phối viên và các đơn vị bị ảnh hưởng |
+| `progress-tracker.md` và hồ sơ run | Điều phối viên | Chủ sở hữu kho/đơn vị nhận bàn giao |
+
+## 5. Vai trò và mô hình điều phối tác nhân
+
+| Vai trò | Trách nhiệm | Không được làm |
+|---|---|---|
+| Điều phối viên | Khóa scope, baseline, trạng thái, phân công và bàn giao | Tự thay Chủ sở hữu hoặc tự cấp `Pass` |
+| Người thiết kế/B0 | Thiết kế sản phẩm trung gian, ánh xạ đánh giá và content trace | Đổi kết quả mục tiêu |
+| Người nghiên cứu | Khảo sát nguồn, ghi claim/evidence và giới hạn | Sửa bài học hoặc tự quyết đánh đổi |
+| Người soạn/tích hợp | Ghi đúng tệp sở hữu và chạy local gate | Sửa tệp của đơn vị khác hoặc xóa finding |
+| Reviewer độc lập | Đọc trực tiếp nguồn, đầu ra và bằng chứng; ghi `review.md` | Tự nghiệm thu phần vừa tạo/sửa |
+| Evidence adjudicator | Phân xử bất đồng dữ kiện trọng yếu theo §6.4–§6.5 của `agent-dispatch-protocol.md` | Thay Chủ sở hữu quyết định đánh đổi |
+| Chủ sở hữu giáo trình | Quyết định khi đổi phạm vi, ưu tiên, chi phí hoặc trạng thái | Ghi `Pass` từ bằng chứng chưa kiểm chứng |
+
+Phân công cụ thể phải tuân thủ `agent-dispatch-protocol.md`; vai trò không mặc
+định tương đương một tác nhân riêng. E phải là lượt/tác nhân mới; finding
+`Dispute`, `Need evidence`, `Out of scope` hoặc `Not verified` trọng yếu không
+được biến thành lệnh sửa mà thiếu disposition và đường phân xử.
+
+## 6. Các giai đoạn thực hiện
+
+| Giai đoạn | Đầu ra chính | Điều kiện chuyển |
+|---|---|---|
+| A — Intake/preflight | Baseline, input manifest, conflict classification | Không còn thiếu đầu vào ảnh hưởng kết quả/an toàn |
+| B — Learning design | `learning-design-contract.md`, `content-trace.md` | Sản phẩm, quyết định, evidence và quyền sở hữu rõ |
+| C — Research | `references.md`, claim/evidence register | Claim trọng yếu được hỗ trợ, thu hẹp hoặc chuyển cấp |
+| D — Authoring/integration | Bộ bài học và local checks | Từng tệp qua cổng cục bộ, không còn placeholder |
+| E — Independent review | `review.md`, verdict và findings | Có review độc lập trực tiếp, không tự nghiệm thu |
+| F — Bounded repair | Disposition, diff, expected evidence, re-review | Finding được đóng, chuyển cấp hoặc `Awaiting adjudication` |
+| G — Handoff/close | Run record, trạng thái, bàn giao | Không còn blocker chưa định tuyến; trạng thái trung thực |
+
+Chi tiết thao tác A–G và quyền ghi vẫn được giữ trong phụ lục A.6.
+
+## 7. Cách kiểm chứng
+
+Kiểm chứng gồm bốn lớp, chạy theo phạm vi thực tế:
+
+1. **Local/deterministic:** cấu trúc tệp, liên kết, placeholder, thời lượng,
+   quyền sở hữu, schema và truy vết.
+2. **Negative:** thiếu đầu vào, lỗi an toàn, claim không có nguồn, scope
+   conflict và đường sửa sai bị chặn.
+3. **Independent semantic review:** tám hard gate trong
+   `.agents/rules/quality-gates.md` được ghi `Pass`/`Fail`/`Not verified`; tám
+   tiêu chí chất lượng được chấm `0–2`, kèm findings và trạng thái.
+4. **Re-review/handoff:** chỉ reviewer độc lập xác nhận thay đổi; `Validated`
+   phải do `pilot-and-validate` cấp sau dạy thử thực tế.
+
+Mọi finding `Blocker`, `Major`, hard gate `Fail`/`Not verified` hoặc finding có
+thể đổi phạm vi phải ghi ở `review.md`, phản hồi append-only trong
+`finding-disposition.md`, và áp dụng §6.4–§6.5 của `agent-dispatch-protocol.md`.
+
+## 8. Hoàn tác và xử lý thất bại
+
+- `Missing input` ảnh hưởng kết quả, bằng chứng hoặc an toàn → `Awaiting input`,
+  không suy đoán.
+- Xung đột mục tiêu/kiến trúc/nguồn chuẩn → dừng và bàn giao
+  `change-curriculum-architecture`; không sửa nội dung để né xung đột.
+- Finding cục bộ `Accept` → sửa tối thiểu rồi kiểm định lại; `Dispute`/`Need
+  evidence`/`Out of scope` → phản hồi, thu hẹp hoặc phân xử trước khi sửa.
+- Sau tối đa hai vòng vẫn còn lỗi chặn, tranh chấp hoặc `Not verified` trọng
+  yếu → `Awaiting adjudication` cho Chủ sở hữu; không lặp vô hạn.
+- Phát hiện sửa nhầm tệp, canonical mutation hoặc scope drift → khóa tích hợp,
+  ghi baseline/diff, khôi phục đúng hunk đã biết hoặc bàn giao cho quy trình
+  sở hữu; không dùng thao tác phá rộng.
+
+## 9. Hợp đồng giao việc cho tác nhân AI nhẹ
+
+Mỗi đơn vị chỉ có một vai trò chính, một giai đoạn, một danh sách tệp rõ ràng
+và một local gate:
+
+```text
+Role: <Coordinator | Researcher | Learning designer | Lesson author | Assessment designer | Feedback-form author | Integrator | Independent reviewer | Evidence adjudicator | Repair owner>
+Goal folder: <ai-native-builder/goals/gNN-*>
+Mode: <Full completion | Targeted repair>
+Phase: <A | B | C | D | E | F | G>
+Work package: <A1-A6 | B1-B7 and B0 | C1-C6 | D1-D6 | E1-E6 | F1-F5 | G1-G6>
+Allowed files: <explicit file list>
+Canonical inputs: <required files to read>
+Required skills: <ordered `$skill-name` values or None>
+Required outputs: <files, sections, evidence, and finding disposition/adjudication when applicable>
+Decision status: <Not required | Awaiting decision | Confirmed | Awaiting adjudication>
+Local gate: <pass conditions from section 7 and Appendix A.4.10>
+Stop conditions: <conflict, missing input, unsafe action, scope change, failed gate>
+Do not: <change goals, copy shared content, raise status, expand scope, self-approve>
+```
+
+## 10. Điều kiện đóng quy trình
+
+1. Có run-id, baseline, input manifest và hồ sơ tiến độ.
+2. Đầu ra đúng mode, đúng chủ sở hữu, không sao chép nguồn dùng chung.
+3. Tất cả local gate và cổng bắt buộc đã có bằng chứng; finding còn lại đã
+   được sửa, thu hẹp, rút, chuyển cấp hoặc ghi `Awaiting adjudication`.
+4. Reviewer độc lập ghi trạng thái chất lượng trung thực; không tự nâng lên
+   `Validated`.
+5. Có bàn giao tới mục tiêu/quy trình tiếp theo và ghi giới hạn còn lại.
+
+## 11. Điều kiện chuyển quy trình sang `Active`
+
+Workflow này hiện giữ `Proposed` theo hồ sơ quyết định về cổng nghiên cứu nguồn
+bên ngoài. Chỉ chuyển sang `Active` sau khi có bằng chứng rằng: bộ tệp
+chuẩn và quyền sở hữu không mơ hồ; B/C/D/E/F/G có thể chạy trên ít nhất một
+mục tiêu; review độc lập và phân xử finding hoạt động; tối đa hai vòng sửa được
+giữ; rollback/handoff khả thi; và hồ sơ agent-dispatch chứng minh được các lượt
+được phân công. Không dùng việc workflow đã tồn tại lâu hoặc đã tạo đủ tệp làm
+bằng chứng.
+
+## Phụ lục A — Đặc tả chi tiết và hướng dẫn triển khai
+
+Phần dưới đây giữ các bảng, mẫu tệp, tiêu chí local gate, state machine chi tiết
+và hướng dẫn A–G của phiên bản trước. Các tham chiếu `A.x` trong phần này là
+chi tiết triển khai của Phụ lục A; các cổng điều phối chuẩn hiện hành là mục
+1–11 ở trên.
+
+### A.1. Nguyên tắc điều phối
 
 1. Xử lý một mục tiêu tại một thời điểm theo quan hệ phụ thuộc trong `ai-native-builder/curriculum-map.md`, trừ khi người dùng chỉ định mục tiêu khác.
 2. `README.md` trong thư mục mục tiêu là bản định hướng thiết kế kiêm đặc tả. Tác nhân AI triển khai không được tự đổi kết quả, điều kiện tiên quyết, phạm vi hoặc sản phẩm trung gian đã quy định.
@@ -15,7 +225,7 @@
 6. Không bàn giao năng lực hoặc sản phẩm trung gian cho mục tiêu kế tiếp khi cổng bắt buộc liên quan còn `Fail` hoặc `Not verified`. Có thể chuẩn bị một mục tiêu khác khi công việc đó không sử dụng và không giả định phần chưa được kiểm chứng; mục tiêu hiện tại vẫn giữ trạng thái `Needs revision`.
 7. `Beginner clarity` và `Time feasibility` không được chấm `2` trước dạy thử với đúng đối tượng.
 
-## 2. Đầu vào bắt buộc
+### A.2. Đầu vào bắt buộc
 
 Điều phối viên phải lập danh mục đầu vào trước khi giao việc cho tác nhân AI. Bảng dưới đây là phần giải thích cho người đọc quy trình, không phải schema của một hồ sơ vận hành mà tác nhân phải tạo:
 
@@ -33,9 +243,9 @@
 
 `Not applicable` là một kết luận hợp lệ có nêu lý do, không phải đầu vào thiếu. Với đầu vào đang áp dụng mà không có, tác nhân AI phải ghi `Missing input`, đánh giá tác động và chuyển sang `Awaiting input` khi phần thiếu làm thay đổi kết quả, bằng chứng hoặc an toàn. Chỉ tiếp tục khi phần thiếu không làm thay đổi các yếu tố đó.
 
-## 3. Bộ tài liệu đầu ra của một mục tiêu
+### A.3. Bộ tài liệu đầu ra của một mục tiêu
 
-Giữ `README.md` làm bản định hướng thiết kế. Toàn bộ vòng lặp tạo ra bộ tệp tối thiểu sau; mỗi tệp do đúng vai trò được quy định ở mục 6 sở hữu:
+Giữ `README.md` làm bản định hướng thiết kế. Toàn bộ vòng lặp tạo ra bộ tệp tối thiểu sau; mỗi tệp do đúng vai trò được quy định ở phụ lục A.6 sở hữu:
 
 ```text
 gNN-slug/
@@ -65,24 +275,26 @@ Mỗi lượt chạy còn tạo các hồ sơ bàn giao bền vững ngoài thư
 
 ```text
 .agents/workflow-runs/<run-id>/
+├── input-manifest.md
 ├── progress-tracker.md
 ├── learning-design-contract.md
-└── content-trace.md
+├── content-trace.md
+└── finding-disposition.md   # required when a finding needs response/adjudication
 ```
 
-Điều phối viên sở hữu `progress-tracker.md`, Người thiết kế sở hữu `learning-design-contract.md`, và B0 sở hữu `content-trace.md`. `progress-tracker.md` được tạo ở A; hai hợp đồng thiết kế còn lại được tạo ở B trước lượt nghiên cứu C. Các tệp được giữ nguyên như hồ sơ bàn giao khi đóng lượt chạy, không bị sửa âm thầm sau khi đóng. Lượt chạy sau phải có `run-id` mới và tham chiếu hồ sơ cũ nếu cần. Nội dung đã được triển khai phải truy vết được tới bộ tệp bài học hoặc `review.md` trước khi đóng lượt chạy.
+Điều phối viên sở hữu `input-manifest.md` và `progress-tracker.md`, Người thiết kế sở hữu `learning-design-contract.md`, B0 sở hữu `content-trace.md`, còn bên xử lý finding/evidence adjudicator sở hữu `finding-disposition.md` khi tệp này được kích hoạt. `progress-tracker.md` và `input-manifest.md` được tạo ở A; hai hợp đồng thiết kế còn lại được tạo ở B trước lượt nghiên cứu C. Các tệp được giữ nguyên như hồ sơ bàn giao khi đóng lượt chạy, không bị sửa âm thầm sau khi đóng. Lượt chạy sau phải có `run-id` mới và tham chiếu hồ sơ cũ nếu cần. Nội dung đã được triển khai phải truy vết được tới bộ tệp bài học hoặc `review.md` trước khi đóng lượt chạy.
 
-## 4. Hướng dẫn xây nội dung cho từng tệp
+### A.4. Hướng dẫn xây nội dung cho từng tệp
 
 Phần này là đặc tả trực tiếp cho tác nhân AI nhẹ. Tác nhân không được chỉ tạo đủ tiêu đề; mỗi phần phải thực hiện đúng chức năng, có đầu vào, đầu ra và khả năng truy vết về bản định hướng thiết kế.
 
-### 4.0 Ranh giới giữa quy trình và kỹ năng soạn bài
+#### A.4.0 Ranh giới giữa quy trình và kỹ năng soạn bài
 
 Quy trình này sở hữu gói tệp bắt buộc, thứ tự B0 rồi D1–D6, quyền ghi tệp, cổng kiểm tra cục bộ và cách bàn giao cho mô hình nhẹ. `$lesson-authoring` sở hữu phương pháp sư phạm tái sử dụng để biến kết quả học tập thành chuỗi hoạt động; `$assessment-design` sở hữu phương pháp thiết kế đánh giá năng lực. Khi được gọi từ quy trình này, các kỹ năng phải tuân thủ cấu trúc và ranh giới tệp tại đây.
 
 Nếu thay đổi một yêu cầu xuất hiện ở cả quy trình và kỹ năng, người sửa phải kiểm tra tệp còn lại, ghi phạm vi ảnh hưởng và chỉ giữ một nguồn quy định chi tiết. Không được xóa đặc tả tệp khỏi quy trình với lý do nó đã xuất hiện trong kỹ năng: đây là hợp đồng thực thi dành cho tác nhân nhẹ.
 
-### 4.1 Lập bảng truy vết nội dung trước khi viết
+#### A.4.1 Lập bảng truy vết nội dung trước khi viết
 
 Trước khi nghiên cứu nguồn bên ngoài hoặc tạo tệp bài học, B0 — người tích hợp dàn ý — phải đọc `learning-design-contract.md` của giai đoạn B và lập bảng sau trong `content-trace.md` từ đặc tả mục tiêu, hợp đồng sản phẩm trung gian và bản thiết kế đánh giá năng lực:
 
@@ -100,7 +312,7 @@ Trước khi nghiên cứu nguồn bên ngoài hoặc tạo tệp bài học, B0
 
 Không bắt đầu viết văn bản diễn giải nếu còn thành phần đặc tả chưa có tệp hoặc phần sở hữu. Mỗi nội dung chỉ nên có một tệp sở hữu; tệp khác chỉ liên kết hoặc tóm tắt tối đa một câu khi cần điều hướng.
 
-### 4.2 Cách viết `lesson.md`
+#### A.4.2 Cách viết `lesson.md`
 
 `lesson.md` là tài liệu dành cho học viên, giúp họ hình thành mô hình tư duy vừa đủ trước và trong khi thực hành. Đây không phải kịch bản cho giảng viên, bản chép lời bài giảng hoặc bản sao của `README.md`.
 
@@ -141,7 +353,7 @@ Yêu cầu chất lượng riêng:
 - Chỉ dẫn riêng cho từng công cụ phải nằm ở phần riêng, có nguồn, ngày kiểm tra hoặc liên kết tới `references.md`.
 - Không trộn hướng dẫn giảng viên vào văn bản dành cho học viên.
 
-### 4.3 Cách viết `practice.md`
+#### A.4.3 Cách viết `practice.md`
 
 `practice.md` là trung tâm của bài học. Nó phải tạo sản phẩm trung gian và bằng chứng thật, không phải danh sách câu hỏi đọc hiểu.
 
@@ -197,7 +409,7 @@ Quy tắc cho hoạt động:
 - Tổng giới hạn thời gian các bước phải khớp ngân sách trong README/lộ trình và có 10–20% khoảng dự phòng phục hồi.
 - Thử thách xử lý lỗi phải có đường đặt lại hoặc hoàn tác trước khi học viên kích hoạt nó.
 
-### 4.4 Cách viết `instructor-guide.md`
+#### A.4.4 Cách viết `instructor-guide.md`
 
 `instructor-guide.md` giúp một giảng viên khác triển khai bài học nhất quán mà không phải đoán thời lượng, dấu hiệu học viên mắc kẹt hoặc mức hỗ trợ được phép.
 
@@ -231,7 +443,7 @@ Yêu cầu cho từng phần:
 
 Không cho giảng viên sửa sản phẩm trung gian hoặc điều khiển tác nhân AI thay học viên. Mọi trợ giúp phải giữ quyền quyết định của học viên.
 
-### 4.5 Cách viết `assessment.md`
+#### A.4.5 Cách viết `assessment.md`
 
 `assessment.md` đánh giá năng lực học viên, không đánh giá chất lượng giáo trình và không sao chép điểm chất lượng 16 điểm.
 
@@ -259,7 +471,7 @@ Yêu cầu:
 - **Phản hồi và thử lại:** mỗi tiêu chí `Not yet` phải dẫn tới một hành động sửa và bằng chứng mới cần nộp; không bắt học viên làm lại toàn bài nếu lỗi cục bộ.
 - **Quyết định bàn giao:** điều kiện `Ready for next goal`, `Ready with remediation` hoặc `Not ready`, cùng sản phẩm trung gian được phép chuyển tiếp.
 
-### 4.6 Cách viết `references.md`
+#### A.4.6 Cách viết `references.md`
 
 Mọi mục tiêu phải có tệp này sau lượt khảo sát nền bắt buộc ở giai đoạn C, kể cả khi kết luận là giữ nguyên thiết kế.
 
@@ -294,7 +506,7 @@ Giá trị chuẩn cho `Độ cập nhật cần thiết` là `Stable`, `Version
 - Không sao chép toàn bộ tài liệu hướng dẫn; chỉ ghi kết luận cần cho quyết định dạy học.
 - `references.md` là nguồn sở hữu cục bộ của khẳng định; lượt bảo trì dùng `refresh-volatile-content` để cập nhật sổ này và bàn giao mọi sửa đổi nội dung sang quy trình sở hữu.
 
-### 4.7 Cách viết `review.md`
+#### A.4.7 Cách viết `review.md`
 
 Người kiểm định tạo tệp này sau khi đọc đầu ra thật; Người soạn không được điền sẵn kết quả `Pass`.
 
@@ -321,7 +533,7 @@ Dùng cấu trúc:
 - **Kết luận:** tính trạng thái từ gate/score, không chọn trạng thái trước rồi điều chỉnh điểm.
 - **Nhật ký kiểm định lại:** ghi phát hiện nào đã được sửa, bằng chứng mới và phán quyết mới; không xóa lịch sử phát hiện.
 
-### 4.8 Cách viết `pilot-feedback-form.md`
+#### A.4.8 Cách viết `pilot-feedback-form.md`
 
 Tệp này chỉ chuẩn bị công cụ thu thập dữ liệu cho lần dạy thử sau này; quy trình hiện tại không tự tổ chức hoặc phân tích buổi dạy thử.
 
@@ -348,7 +560,7 @@ Yêu cầu:
 - Không tự suy ra chất lượng bài học từ một phản hồi đơn lẻ. Việc tổng hợp và kết luận thuộc `pilot-and-validate`.
 - Không dùng mức độ tự tin tự báo cáo làm bằng chứng duy nhất để nâng điểm `Beginner clarity`, `Time feasibility` hoặc cấp trạng thái `Validated`.
 
-### 4.9 Quy chuẩn viết chung cho mô hình nhẹ
+#### A.4.9 Quy chuẩn viết chung cho mô hình nhẹ
 
 1. Viết tiếng Việt rõ, câu trực tiếp; chỉ giữ thuật ngữ tiếng Anh khi đó là nhãn hoặc định danh học viên cần nhận diện trong công cụ, và giải thích ở lần đầu.
 2. Mỗi phần mở bằng mục đích hoặc hành vi, không mở bằng định nghĩa hàn lâm dài.
@@ -361,7 +573,7 @@ Yêu cầu:
 9. Giữ ranh giới trách nhiệm giữa các tệp; không sao chép cùng một đoạn nội dung vào nhiều tệp.
 10. Khi bản định hướng không đủ để quyết định, ghi `Open question` trong bàn giao; không âm thầm lựa chọn thay người dùng.
 
-### 4.10 Cổng kiểm tra cục bộ trước khi bàn giao từng tệp
+#### A.4.10 Cổng kiểm tra cục bộ trước khi bàn giao từng tệp
 
 | Tệp | Chỉ được bàn giao khi |
 |---|---|
@@ -375,7 +587,7 @@ Yêu cầu:
 
 Tệp không qua cổng kiểm tra cục bộ phải được tác nhân AI sửa ngay trong đơn vị công việc hiện tại; không đẩy lỗi cấu trúc hiển nhiên sang kiểm định độc lập.
 
-## 5. Máy trạng thái
+### A.5. Máy trạng thái
 
 ```text
 Queued → Preflight
@@ -406,14 +618,14 @@ Mọi giai đoạn đang hoạt động có thể chuyển sang `Conflict classi
 
 Trước dạy thử, đích tự động hóa mặc định là `Pilot-ready`. Tổng điểm tối đa trước dạy thử là `14/16`; vì `Release-ready` cần ít nhất `13/16`, trạng thái này chỉ khả thi khi sáu tiêu chí không bị trần đạt tổng ít nhất `11/12` và hai tiêu chí bị trần đều đạt `1`. Chỉ ghi `Release-ready` khi Người kiểm định chứng minh không còn thay đổi bắt buộc đã biết; không dùng nó như một suy diễn rằng bài đã có bằng chứng pilot hoặc đã được phát hành.
 
-## 6. Vòng lặp hoàn thiện một mục tiêu
+### A.6. Vòng lặp hoàn thiện một mục tiêu
 
-### Giai đoạn A — Chọn và khóa đặc tả
+#### Giai đoạn A — Chọn và khóa đặc tả
 
 **Vai trò:** Điều phối viên
 
 1. Chọn mục tiêu tiếp theo từ hàng đợi và kiểm tra xem thư mục điều kiện tiên quyết đã có đầu ra cần thiết chưa.
-2. Lập danh mục đầu vào theo mục 2; ghi rõ `Not applicable` hoặc `Missing input` cùng lý do thay vì suy đoán một đầu vào có tồn tại.
+2. Lập danh mục đầu vào theo phụ lục A.2; ghi rõ `Not applicable` hoặc `Missing input` cùng lý do thay vì suy đoán một đầu vào có tồn tại.
 3. Đọc bản định hướng thiết kế; trích ra kết quả, phạm vi, quyết định của học viên, sản phẩm trung gian, bằng chứng, yêu cầu an toàn, đường xử lý lỗi và bàn giao.
 4. Lập bản chụp hợp đồng trong báo cáo điều phối; không tạo thêm nguồn chuẩn có thẩm quyền mới.
 5. Kiểm tra xung đột với kế hoạch chung, kiến trúc, bản đồ và lộ trình.
@@ -421,7 +633,7 @@ Trước dạy thử, đích tự động hóa mặc định là `Pilot-ready`. 
 
 **Điều kiện kết thúc:** đặc tả rõ, quan hệ phụ thuộc có sẵn hoặc được hỗ trợ nền hợp lệ, không còn xung đột chưa giải quyết.
 
-### Giai đoạn B — Thiết kế sản phẩm trung gian và khung nội dung
+#### Giai đoạn B — Thiết kế sản phẩm trung gian và khung nội dung
 
 **Vai trò:** Người thiết kế; B0 do Người tích hợp dàn ý thực hiện
 
@@ -437,7 +649,7 @@ Trước dạy thử, đích tự động hóa mặc định là `Pilot-ready`. 
 
 **Điều kiện kết thúc:** `learning-design-contract.md` và `content-trace.md` tồn tại; sản phẩm trung gian, đánh giá, dàn ý và câu hỏi nghiên cứu đủ cụ thể; chưa viết văn bản bài học.
 
-### Giai đoạn C — Khảo sát nguồn bên ngoài và phản biện khung nội dung
+#### Giai đoạn C — Khảo sát nguồn bên ngoài và phản biện khung nội dung
 
 **Vai trò:** Người nghiên cứu
 
@@ -452,17 +664,17 @@ Sau khi C đóng, không lặp lại toàn bộ khảo sát nền. Nếu D1–D6
 
 **Điều kiện kết thúc:** khảo sát nền đã được ghi; mọi claim trọng yếu là `Supported`, `Partially supported` sau khi thu hẹp, hoặc `Inconclusive` có giới hạn không gây rủi ro; không giữ claim `Not supported` hay `Contradicted` trong thiết kế; mọi hệ quả đã được xử lý hoặc bàn giao.
 
-### Giai đoạn D — Soạn bộ tài liệu bài học
+#### Giai đoạn D — Soạn bộ tài liệu bài học
 
 **Vai trò:** người soạn theo từng đơn vị công việc; đơn vị công việc giới hạn phạm vi đầu ra, không bắt buộc sinh một tác nhân mới cho mỗi đơn vị D1–D6.
 
 1. Dùng `$lesson-authoring` làm hợp đồng soạn bài bao quát, nhưng gọi kỹ năng theo từng đơn vị công việc thay vì coi một lần gọi là đủ cho toàn giai đoạn.
 2. Thực hiện tuần tự; mỗi đơn vị công việc chỉ được bắt đầu khi đầu ra trước đã qua cổng kiểm tra cục bộ:
-   - **D1 — người soạn phần khái niệm:** gọi `$lesson-authoring`; chỉ viết `lesson.md` theo mục 4.2 và chạy cổng kiểm tra cục bộ của tệp.
-   - **D2 — người soạn bài thực hành:** gọi `$lesson-authoring`; đọc `lesson.md` và `learning-design-contract.md`, chỉ viết `practice.md` theo mục 4.3 và kiểm tra tổng giới hạn thời gian.
-   - **D3 — người soạn hướng dẫn giảng viên:** gọi `$lesson-authoring`; đọc bài học và bài thực hành, chỉ viết `instructor-guide.md` theo mục 4.4; không đổi nhiệm vụ của học viên để làm hướng dẫn dễ viết hơn.
-   - **D4 — người thiết kế đánh giá năng lực:** gọi `$assessment-design`; đọc `learning-design-contract.md`, đặc tả sản phẩm trung gian và bằng chứng trong bài thực hành, rồi chỉ viết `assessment.md` theo mục 4.5. D4 hiện thực hóa bản thiết kế C, không thiết kế một hệ đánh giá thứ hai.
-   - **D5 — người soạn phiếu phản hồi:** không có kỹ năng bắt buộc riêng; làm theo mục 4.8 và chỉ viết `pilot-feedback-form.md`. Không gọi `$pilot-feedback-analysis`, không thực hiện hoặc phân tích dạy thử.
+   - **D1 — người soạn phần khái niệm:** gọi `$lesson-authoring`; chỉ viết `lesson.md` theo phụ lục A.4.2 và chạy cổng kiểm tra cục bộ của tệp.
+   - **D2 — người soạn bài thực hành:** gọi `$lesson-authoring`; đọc `lesson.md` và `learning-design-contract.md`, chỉ viết `practice.md` theo phụ lục A.4.3 và kiểm tra tổng giới hạn thời gian.
+   - **D3 — người soạn hướng dẫn giảng viên:** gọi `$lesson-authoring`; đọc bài học và bài thực hành, chỉ viết `instructor-guide.md` theo phụ lục A.4.4; không đổi nhiệm vụ của học viên để làm hướng dẫn dễ viết hơn.
+   - **D4 — người thiết kế đánh giá năng lực:** gọi `$assessment-design`; đọc `learning-design-contract.md`, đặc tả sản phẩm trung gian và bằng chứng trong bài thực hành, rồi chỉ viết `assessment.md` theo phụ lục A.4.5. D4 hiện thực hóa bản thiết kế C, không thiết kế một hệ đánh giá thứ hai.
+   - **D5 — người soạn phiếu phản hồi:** không có kỹ năng bắt buộc riêng; làm theo phụ lục A.4.8 và chỉ viết `pilot-feedback-form.md`. Không gọi `$pilot-feedback-analysis`, không thực hiện hoặc phân tích dạy thử.
    - **D6 — người tích hợp bộ tài liệu:** gọi `$lesson-authoring`; kiểm tra thuật ngữ, tình huống, đường dẫn, thời lượng, sản phẩm trung gian, bằng chứng, tài liệu tham khảo và bàn giao xuyên tệp. Chỉ sửa điểm thiếu nhất quán nhỏ; trả thay đổi nội dung về đơn vị sở hữu và trả claim trọng yếu chưa được kiểm chứng về giai đoạn C.
 3. Mỗi đơn vị công việc báo cáo đầu vào đã đọc, tệp đã đổi, thành phần hợp đồng đã bao phủ, bằng chứng qua cổng cục bộ, câu hỏi còn mở và đơn vị công việc tiếp theo.
 4. Liên kết tới tài nguyên dùng chung; không sao chép chính sách, mẫu hoặc bài thực hành.
@@ -470,7 +682,7 @@ Sau khi C đóng, không lặp lại toàn bộ khảo sát nền. Nếu D1–D6
 
 **Điều kiện kết thúc:** bộ tài liệu đủ để một giảng viên khác dạy thử mà không phải tự đoán hoạt động, bằng chứng hoặc cách xử lý lỗi.
 
-### Giai đoạn E — Kiểm định chất lượng độc lập
+#### Giai đoạn E — Kiểm định chất lượng độc lập
 
 **Vai trò:** Người kiểm định độc lập, không dùng kết luận tự đánh giá của Người soạn làm bằng chứng
 
@@ -485,7 +697,7 @@ Sau khi C đóng, không lặp lại toàn bộ khảo sát nền. Nếu D1–D6
 
 **Điều kiện kết thúc:** có kiểm định độc lập, có thể lặp lại và chỉ rõ thay đổi nhỏ nhất đủ tin cậy cho lỗi chặn hoặc lỗi `Major`.
 
-### Giai đoạn F — Vòng sửa có giới hạn
+#### Giai đoạn F — Vòng sửa có giới hạn
 
 **Vai trò:** Bên sửa chịu trách nhiệm cho đơn vị công việc sở hữu tệp bị ảnh hưởng
 
@@ -502,7 +714,7 @@ Giới hạn mặc định: tối đa **hai vòng sửa** cho cùng một bộ p
 
 **Điều kiện kết thúc:** tất cả các cổng bắt buộc `Pass`, không có tiêu chí `0`, tổng điểm đạt ít nhất `11/16`, hoặc vấn đề đã được chuyển cấp trung thực.
 
-### Giai đoạn G — Bàn giao và đóng lượt chạy
+#### Giai đoạn G — Bàn giao và đóng lượt chạy
 
 **Vai trò:** Điều phối viên
 
@@ -515,9 +727,9 @@ Giới hạn mặc định: tối đa **hai vòng sửa** cho cùng một bộ p
 
 **Điều kiện kết thúc:** bộ tài liệu bài học, trạng thái kiểm định và quan hệ phụ thuộc bàn giao nhất quán.
 
-## 7. Mô hình điều phối và đặc tả lời nhắc
+### A.7. Mô hình điều phối và đặc tả lời nhắc
 
-### 7.1. Phân biệt vai trò, đơn vị công việc và tác nhân
+#### A.7.1. Phân biệt vai trò, đơn vị công việc và tác nhân
 
 - **Vai trò** xác định trách nhiệm và điều không được làm.
 - **Đơn vị công việc** xác định một đầu ra hẹp, tệp được phép sửa và cổng kiểm tra cục bộ.
@@ -568,27 +780,29 @@ Shared-file exclusion: one writer per lesson file
 Spawn verification: required before the first delegated work unit in an unverified runtime
 ```
 
-### 7.2. Đặc tả lời nhắc cho tác nhân AI nhẹ
+#### A.7.2. Đặc tả lời nhắc cho tác nhân AI nhẹ
 
 Mỗi lượt chỉ giao một vai trò, một giai đoạn và một gói công việc. Giai đoạn A và G dùng vai trò Điều phối viên; các giai đoạn còn lại dùng vai trò chuyên trách tương ứng. “Giai đoạn” chỉ vị trí trong vòng đời; “gói công việc” chỉ phần việc hẹp có đầu ra và quyền ghi riêng. Lời nhắc tối thiểu phải có:
 
 ```text
 Role: <Coordinator | Researcher | Learning designer | Lesson author | Assessment designer | Feedback-form author | Integrator | Independent reviewer | Evidence adjudicator | Repair owner>
 Goal folder: <ai-native-builder/goals/gNN-*>
+Mode: <Full completion | Targeted repair>
 Phase: <A | B | C | D | E | F | G>
 Work package: <A1-A6 | B1-B7 and B0 | C1-C6 | D1-D6 | E1-E6 | F1-F5 | G1-G6>
 Allowed files: <explicit file list>
 Canonical inputs: <required files to read>
 Required skills: <ordered `$skill-name` values or None>
 Required outputs: <files, sections, evidence, and finding disposition/adjudication when applicable>
-Local gate: <pass conditions from section 4.10>
-Stop conditions: <conflict, missing input, unsafe action, scope change>
-Do not: <change goals, copy shared content, raise status, expand scope>
+Decision status: <Not required | Awaiting decision | Confirmed | Awaiting adjudication>
+Local gate: <pass conditions from section 7 and Appendix A.4.10>
+Stop conditions: <conflict, missing input, unsafe action, scope change, failed gate>
+Do not: <change goals, copy shared content, raise status, expand scope, self-approve>
 ```
 
 Không giao cùng lúc nghiên cứu, soạn bài, kiểm định và sửa bài cho một tác nhân AI nhẹ. Trong giai đoạn D, mặc định `Allowed files` chỉ chứa một tệp đầu ra; D6 là ngoại lệ nhưng chỉ được sửa điểm thiếu nhất quán nhỏ. Bàn giao phải dựa trên tệp và bằng chứng, không dựa vào trí nhớ hội thoại.
 
-## 8. Hồ sơ tiến độ của lượt chạy
+### A.8. Hồ sơ tiến độ của lượt chạy
 
 Trong quy trình này, một `run-id` chỉ bao phủ đúng một vòng hoàn thiện cho một mục tiêu `gNN`. Điều phối viên tạo `run-id` mới khi bắt đầu mục tiêu khác, kể cả khi mục tiêu đó đứng kế tiếp trong `ai-native-builder/curriculum-map.md`.
 
@@ -601,7 +815,7 @@ Khi bắt đầu hoặc tiếp tục lượt chạy hiện tại, Điều phối
 
 `progress-tracker.md` chỉ ghi tiến độ thực thi, lỗi chặn và liên kết tới bằng chứng. `review.md` trong thư mục mục tiêu là nguồn duy nhất cấp trạng thái chất lượng và phát hiện kiểm định; sổ tiến độ chỉ ghi giá trị được đọc từ `review.md` cùng thời điểm kiểm tra, không tự tạo hay đổi phán quyết. Không sao chép nội dung bài học hoặc kiểm định bằng chứng chi tiết vào sổ này.
 
-## 9. Rào chắn chống “sản xuất rác hàng loạt”
+### A.9. Rào chắn chống “sản xuất rác hàng loạt”
 
 - Không soạn hàng loạt mọi mục tiêu trong một lượt trước khi bài học đầu tiên đi hết vòng lặp và quy trình được hiệu chỉnh.
 - Chạy thử quy trình xây dựng với **G01**, sau đó với một mục tiêu có điểm chạm mã nguồn hoặc công cụ như **G04** hoặc **G07** trước khi mở rộng.
@@ -612,9 +826,11 @@ Khi bắt đầu hoặc tiếp tục lượt chạy hiện tại, Điều phối
 - Không đẩy lỗi thiếu tiêu đề, liên kết hỏng, phần giữ chỗ, thời lượng lệch hoặc bảng tiêu chí đánh giá không trỏ bằng chứng sang Người kiểm định; cổng kiểm tra cục bộ phải bắt các lỗi này trước.
 - Không yêu cầu một mô hình nhẹ tạo toàn bộ bộ tài liệu trong một lời nhắc.
 
-## 10. Tiêu chí duyệt quy trình
+### A.10. Tiêu chí duyệt quy trình (lịch sử)
 
-Quy trình chỉ chuyển từ `Proposed` sang `Active` khi người dùng chấp nhận:
+Đây là bản tiêu chí lịch sử được giữ để truy vết; không thay thế cổng hiện hành
+ở mục 11. Khi workflow còn `Proposed`, chỉ chuyển sang `Active` khi người dùng
+chấp nhận:
 
 1. Một mục tiêu mỗi vòng lặp thay vì làm hàng loạt;
 2. Đầu ra bộ tài liệu mặc định gồm bảy tệp ngoài `README.md`: năm tệp do người soạn sở hữu, một `references.md` do Người nghiên cứu sở hữu và một `review.md` do Người kiểm định độc lập sở hữu;
@@ -627,4 +843,5 @@ Quy trình chỉ chuyển từ `Proposed` sang `Active` khi người dùng chấ
 9. Skill nghiên cứu quy định công cụ theo năng lực, ngân sách, điều kiện dừng, nguồn được phép dùng và hợp đồng đầu ra; không dùng trí nhớ mô hình thay nguồn không truy được.
 10. Mọi lượt sinh tác nhân và kiểm định độc lập có bằng chứng theo `agent-dispatch-protocol.md`; thiếu bằng chứng phải giữ `Not verified`.
 
-Sau khi được duyệt, cập nhật trạng thái tệp này thành `Active`, thêm cách gọi quy trình vào root `README.md` và tạo sổ theo dõi tiến độ trước lượt chạy đầu tiên.
+Sau khi được duyệt, đồng bộ trạng thái trong workflow này, `.agents/workflows/README.md`
+và root `README.md`, rồi tạo sổ theo dõi tiến độ trước lượt chạy đầu tiên.

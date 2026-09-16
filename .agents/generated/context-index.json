@@ -161,6 +161,18 @@
     },
     {
       "authority": "governance",
+      "content_hash": "bdd02c0145d8b7cf7a18c4a49d93ac50f682a4a509a02d0d5995a9895206b36c",
+      "default_search": true,
+      "entry_hash": "c228e4d3f3598c768bcccdad36dcda465746c605146e93ab6f0420a0410a9554",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/decisions/2026-09-16-complete-goal-lessons-template-alignment.md",
+      "source_status": "unknown",
+      "title": "Đồng bộ workflow hoàn thiện bài học với template chuẩn",
+      "type": "governance-decision"
+    },
+    {
+      "authority": "governance",
       "content_hash": "c3742bfbec97c36ecf611ee7510d69f1a5e8ca6db3de51ec568d5369bb1f6a9b",
       "default_search": true,
       "entry_hash": "a97242fd6186c5139b8709d621aad70b1b4b815a91b0ad17e2c4b394d6e9c4b3",
@@ -1272,6 +1284,102 @@
     },
     {
       "authority": "operational",
+      "content_hash": "fe24a558ee045740a872c30f483ee8693cda06575b22a9bbb2467b07b9bbafc9",
+      "default_search": false,
+      "entry_hash": "e375cb327d8f4d713f5428e9576b57c4825259bff9546a87bf256971b72185d9",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/README.md",
+      "source_status": "unknown",
+      "title": "Workflow run: complete-goal-lessons template alignment",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "7a7bc768fd77aaf19a47e3694c832053930b303f780ec1d5fb41a15a0f76eb49",
+      "default_search": false,
+      "entry_hash": "45463fa43fe0614a90613ac5dc8e7bffad275f8bf59689971bfd7950a73190d3",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/finding-disposition.md",
+      "source_status": "unknown",
+      "title": "Finding disposition",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "f077a126b2d8924fdb656fb7e01add49f4186f269ed8dcb9a182df31efa591dd",
+      "default_search": false,
+      "entry_hash": "57c683b9e5b2e6fa8237939c6a28d74d11ba9cc18e053148d36c975bef1c7c4c",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/impact-map.md",
+      "source_status": "unknown",
+      "title": "Impact map",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "210862f1496c6f87f191f7e7398b01f534e6d86b63bc754372cc4bfee8af4fcd",
+      "default_search": false,
+      "entry_hash": "d7a2337fd1a6735460cbd0be0314599fad6defabbc3e09cae4ebc6d19338c4da",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/implementation-log.md",
+      "source_status": "unknown",
+      "title": "Implementation log",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "835d1ff286418d32253197f3654e871955a9f09145bd68849f26f7cd64eda967",
+      "default_search": false,
+      "entry_hash": "e6c9d977e6759440f779b727dc081a0a0de5324c427cdde598f338f1dc5afe5b",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/input-manifest.md",
+      "source_status": "unknown",
+      "title": "Input manifest",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "52b0a2728f3cbeaa5bea4260cd76dc39935c3b1c73f314531cddce10199d57c1",
+      "default_search": false,
+      "entry_hash": "2453188cdbac955383041a1a830ac65ba8ff490c60bfa170d242cf5dbccd9d22",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/orchestration-log.md",
+      "source_status": "unknown",
+      "title": "Orchestration log",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "40e38622c61274d1c550e895938eb1f278efec24a179381e9e2f6580b50fac47",
+      "default_search": false,
+      "entry_hash": "c4d0e410d8c5878ec292c7febb3a425e0874141927b69c7b968be2dc31435935",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/review-findings.md",
+      "source_status": "unknown",
+      "title": "Independent governance review",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "b2fc4667200ecbc0ac07241662192df6f8e99c94f5f8f064633df5c767658083",
+      "default_search": false,
+      "entry_hash": "8bab44cacbe63322eeb8704b4374e796530b21219b1260f91c93b9f121886501",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/validation-report.md",
+      "source_status": "unknown",
+      "title": "Validation report",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
       "content_hash": "6ca01b0545885f116d3ab1cf742d335b1a50d0dbff2c46b329f19baa40223bd8",
       "default_search": false,
       "entry_hash": "0aa05349c981c27b0711b169c0065845c10776f758141848e388c1f4de5670b0",
@@ -1284,9 +1392,9 @@
     },
     {
       "authority": "canonical",
-      "content_hash": "e1190a40bc218e0f0a8d98e2b85b23d8ce8b85e7deb4380095e1ce889372e852",
+      "content_hash": "82d13c1db1d4dce058aa711e4fbf729e0ef1353518b1971f2132d7e502490104",
       "default_search": true,
-      "entry_hash": "a371035ab2ed01b5c5497f253202a705d12ebb80e67fe3cd70004782d19121fe",
+      "entry_hash": "cdf5847d9bab44aef72dee07d95a9c37f2e6fafec7d8f9ef1c634ba343c6bd12",
       "index_state": "current",
       "links": [
         ".agents/skills/workflow-orchestration/SKILL.md",
@@ -1332,16 +1440,16 @@
     },
     {
       "authority": "canonical",
-      "content_hash": "aef7e9161a8131563cf79955af96e9cea43d33c298e80d943d1faa909e0e908f",
+      "content_hash": "938d4df9ef868cf372780fd002e4c613d7a18f50807959e2fe7830209cd775c5",
       "default_search": true,
-      "entry_hash": "ea178e022c0036b534c23d1d6f089d0c77926b8ff30976f2190c7717a8316e72",
+      "entry_hash": "dbf4d6ce64c17bda50203143420efb80360f026981a26b0a78da5718850835b0",
       "index_state": "current",
       "links": [
         ".agents/workflows/agent-dispatch-protocol.md"
       ],
       "path": ".agents/workflows/complete-goal-lessons.md",
       "source_status": "unknown",
-      "title": "Quy trình đề xuất: Hoàn thiện bài học theo mục tiêu",
+      "title": "Quy trình hoàn thiện bài học theo mục tiêu",
       "type": "workflow-protocol"
     },
     {
@@ -2058,5 +2166,5 @@
   ],
   "generator_version": "0.1",
   "schema_version": "1.0",
-  "tree_fingerprint": "0bb1618ffae4ce1e93761e2b739eda9eac0c5a6d7749df4d2f0518a912d51bdd"
+  "tree_fingerprint": "f8ac8804dac0d59f285bcf8a00a0444ec978af412633b3445959fddf3a0532c7"
 }
