@@ -12,5 +12,6 @@
 | 2026-09-16 09:46 | W6 | worker | Ran benchmark and context-package probes | `benchmark-report-v9.json`; package source hashes current |
 | 2026-09-16 09:47 | W7 | independent reviewer | Completed first read-only governance review | FAIL findings recorded and fixed |
 | 2026-09-16 10:15 | W7 | independent reviewer | Completed re-review after worker disposition | PASS-WITH-FINDINGS; no implementation blocker |
+| 2026-09-16 10:20 | W8 | owner | Ratified the implementation | decision record `2026-09-16-repo-wide-derived-index-tools-ratified.md`; integration authorized |
 
-Next: owner decision gate — `Ratify`, `Revise`, `Reject`, or `Defer`.
+Next: merge to `main`, run post-ratify validation, refresh the derived index, and push `origin/main`.

@@ -1,6 +1,6 @@
 # Repo-wide derived index tools trial
 
-- **Status:** Independent review passed with no implementation blocker; awaiting owner decision.
+- **Status:** Ratified; post-ratification integration validation in progress.
 - **Workflow:** `optimize-agent-harness-system.md` (controlled implementation trial)
 - **Owner:** repository owner
 - **Worker:** Codex worker (Luna max)
