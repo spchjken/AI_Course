@@ -1,5 +1,5 @@
 {
-  "baseline_commit": "00e60d7a45ca4b395f299735afbe06d2117a8124",
+  "baseline_commit": "feada97ed43c728b0f09d32bc88c7ce5e88d1200",
   "canonical": false,
   "derived": true,
   "entries": [
@@ -169,6 +169,18 @@
       "path": ".agents/decisions/2026-09-16-optimize-agent-harness-first-pilot-ratified.md",
       "source_status": "unknown",
       "title": "Ratification of the optimize-agent-harness first pilot",
+      "type": "governance-decision"
+    },
+    {
+      "authority": "governance",
+      "content_hash": "8cc0d60739cec9b3250f35a70b8c9b29641542ab392f0cccdc8ac819cd86cde1",
+      "default_search": true,
+      "entry_hash": "b6776edbce7928553c9448b7bd0accfc2e6ad3b586fa64de8a94c8d1756b8834",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/decisions/2026-09-16-repo-wide-derived-index-tools-ratified.md",
+      "source_status": "unknown",
+      "title": "Ratification of repo-wide derived index tools",
       "type": "governance-decision"
     },
     {
@@ -1092,9 +1104,9 @@
     },
     {
       "authority": "operational",
-      "content_hash": "59172f19032000d78a7f094bc7c171f7ddff2c657a40237cc447e943895071c4",
+      "content_hash": "bc07a2336146f9a37161fec3bf9c624dbb31cff4acf5d33ff3d971149723dba8",
       "default_search": false,
-      "entry_hash": "cbbc76ec380b891ec4a4f0cc147fd655e1b76a0fd83669caac88d8f1abdea947",
+      "entry_hash": "574a17a615395da5f230b56b85045cb338f9b097879eeb2ded5e38f7050feb01",
       "index_state": "current",
       "links": [],
       "path": ".agents/workflow-runs/20260916-0940-repo-wide-derived-index-tools/README.md",
@@ -1188,14 +1200,26 @@
     },
     {
       "authority": "operational",
-      "content_hash": "a59d35b80d5b529c229bf0e6be4f4e0086bf99f79638b979b41ea71ed5601e68",
+      "content_hash": "1cdade3b8392352155d2708c1fb97ca5fd1cec612626642dc4b18601e8a4d88c",
       "default_search": false,
-      "entry_hash": "71bdb0a81c0cd539b60f0ae6238865d68bab76d3957cf977edfc7f24870c4cb0",
+      "entry_hash": "270ada9e372996605aabd8656e73b046847297971e9637b165bcfd643ed19b73",
       "index_state": "current",
       "links": [],
       "path": ".agents/workflow-runs/20260916-0940-repo-wide-derived-index-tools/orchestration-log.md",
       "source_status": "unknown",
       "title": "Orchestration log",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "32e3b86b488c63b7a748b0c2e8ab9b1d25f86dc8b85ecadc7d5682ee229a834b",
+      "default_search": false,
+      "entry_hash": "e612edca453c0265098ab17f4b7a6cd44198b24395066df8d8e9935232b71453",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260916-0940-repo-wide-derived-index-tools/post-ratify-validation.md",
+      "source_status": "unknown",
+      "title": "Post-ratify validation",
       "type": "operational-evidence"
     },
     {
@@ -2034,5 +2058,5 @@
   ],
   "generator_version": "0.1",
   "schema_version": "1.0",
-  "tree_fingerprint": "6ac20eb6e44761f1001bd08b36920970bf3940f352b8d8422ad2ecb96600a815"
+  "tree_fingerprint": "0bb1618ffae4ce1e93761e2b739eda9eac0c5a6d7749df4d2f0518a912d51bdd"
 }
