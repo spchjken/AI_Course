@@ -1,0 +1,95 @@
+﻿{
+  "tool_version": "0.1",
+  "root": "C:\\Users\\user\\Documents\\GitHub\\AI_Course",
+  "rg_available": true,
+  "full_rebuild": {
+    "samples_ms": [
+      555.268
+    ],
+    "min_ms": 555.268,
+    "median_ms": 555.268,
+    "p95_ms": 555.268,
+    "max_ms": 555.268,
+    "return_codes": [
+      0
+    ],
+    "pass": true,
+    "target_ms": 10000,
+    "within_target": true
+  },
+  "no_op_check": {
+    "samples_ms": [
+      585.248,
+      544.434,
+      646.076,
+      614.999,
+      496.873
+    ],
+    "min_ms": 496.873,
+    "median_ms": 585.248,
+    "p95_ms": 646.076,
+    "max_ms": 646.076,
+    "return_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "pass": true,
+    "target_ms": 500,
+    "within_target": false
+  },
+  "incremental_update": {
+    "samples_ms": [
+      412.829,
+      396.983,
+      417.928,
+      462.561,
+      426.406
+    ],
+    "min_ms": 396.983,
+    "median_ms": 417.928,
+    "p95_ms": 462.561,
+    "max_ms": 462.561,
+    "return_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "pass": true,
+    "target_ms": 1000,
+    "within_target": true
+  },
+  "lexical_search": {
+    "samples_ms": [
+      745.068,
+      580.72,
+      655.279,
+      723.851,
+      993.382
+    ],
+    "min_ms": 580.72,
+    "median_ms": 723.851,
+    "p95_ms": 993.382,
+    "max_ms": 993.382,
+    "return_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "pass": true,
+    "target_ms": 1000,
+    "within_target": true
+  },
+  "targets_ms": {
+    "full_rebuild": 10000,
+    "no_op_check": 500,
+    "incremental_update": 1000,
+    "lexical_search": 1000
+  }
+}

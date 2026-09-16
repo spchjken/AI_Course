@@ -1,3 +1,10 @@
 # Python-generated cache files
 __pycache__/
 *.py[cod]
+
+# Local state for the derived context-index synchronizer
+.agents/.cache/
+.agents/indexing/.cache/
+.agents/indexing/cache/
+.context-index-cache.json
+.context-index-lock

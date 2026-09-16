@@ -1,0 +1,71 @@
+{
+  "index_tree_fingerprint": "a8797f51a8b36538b8a266d72e8462b3c9dffaf1a551d59b60fee7af49835b57",
+  "out_of_scope": [
+    "Do not treat snippets as a substitute for reading the source file.",
+    "Do not edit canonical sources outside the explicitly approved work unit.",
+    "Do not promote this task package or the derived index to canonical authority."
+  ],
+  "query": "derived index",
+  "read_allowlist": [
+    ".agents/indexing/README.md",
+    ".agents/indexing/sync_index.py",
+    ".agents/indexing/tests/test_indexing.py",
+    ".agents/indexing/build_context_package.py",
+    ".agents/indexing/index_core.py"
+  ],
+  "role": "reviewer",
+  "schema_version": "1.0",
+  "source_verification": {
+    "all_current": true,
+    "stale_paths": []
+  },
+  "sources": [
+    {
+      "authority": "operational",
+      "content_hash": "3c774052cd01c8c88dabe667554a1aaa52a33bf75f5effdfcb414cbda7831454",
+      "path": ".agents/indexing/README.md",
+      "snippet": "context index tools Thư mục này chứa bộ công cụ tạo và giữ derived index của repository. Index là ảnh cấu trúc có thể tái tạo, không phải nguồn chuẩn và không thay thế nội dung gố",
+      "source_status": "experimental",
+      "title": "Derived context index tools",
+      "type": "indexing-tool"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "a7515b20b91f37e7b26ec5239c406c2d691d5f2418fb0d55286cf7562da3c07d",
+      "path": ".agents/indexing/sync_index.py",
+      "snippet": "\"\"\"Build and incrementally synchronize the repository derived context index.\"\"\" from __future__ import annotations import argparse import json import os import subprocess import",
+      "source_status": "experimental",
+      "title": "sync_index",
+      "type": "indexing-tool"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "62a494eea13305cb4608c40eb1052eb36a6a5d2f1736dfadb01b2a932939990e",
+      "path": ".agents/indexing/tests/test_indexing.py",
+      "snippet": "r(HERE)) import build_context_package # noqa: E402 import index_core # noqa: E402 import search_index # noqa: E402 import sync_index # noqa: E402 class IndexFixture(unittest",
+      "source_status": "experimental",
+      "title": "test_indexing",
+      "type": "indexing-tool"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "3d7d593131b7104860ef805b93fdc8b0864b736690b2336990dddd624c213100",
+      "path": ".agents/indexing/build_context_package.py",
+      "snippet": "\"\"\"Build a small, task-scoped context package from the derived index.\"\"\" from __future__ import annotations import argparse import json import sys from pathlib import Path from t",
+      "source_status": "experimental",
+      "title": "build_context_package",
+      "type": "indexing-tool"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "35a18eddf438b63be4987fea0cbe9084900733869b7dde105a707a152d297105",
+      "path": ".agents/indexing/index_core.py",
+      "snippet": "index.get(\"canonical\") is not False: errors.append(\"derived index must have derived=true and canonical=false\") entries = index.get(\"entries\") if not isinstance(entr",
+      "source_status": "experimental",
+      "title": "index_core",
+      "type": "indexing-tool"
+    }
+  ],
+  "task": "repo-index-review",
+  "write_allowlist": []
+}

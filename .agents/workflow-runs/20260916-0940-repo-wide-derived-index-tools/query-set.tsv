@@ -1,0 +1,8 @@
+query	default_expected_authority	include_operational_expected	purpose
+quality gate	canonical	false	canonical workflow/rule retrieval
+derived index	operational	false	tool metadata retrieval without run evidence
+five implementation decisions	supporting	true	verify workflow-run exclusion and opt-in
+curriculum goal	canonical/supporting	false	goal design retrieval
+ratification	governance	false	decision-record retrieval
+content hash	operational	false	tool design retrieval
+nonexistent sentinel	 none	false	negative query

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-course/context-index.schema.json",
+  "title": "AI Course derived context index",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generator_version",
+    "derived",
+    "canonical",
+    "baseline_commit",
+    "tree_fingerprint",
+    "entries"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "generator_version": { "type": "string" },
+    "derived": { "const": true },
+    "canonical": { "const": false },
+    "baseline_commit": { "type": "string" },
+    "tree_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": [
+        "path",
+        "title",
+        "type",
+        "authority",
+        "source_status",
+        "default_search",
+        "index_state",
+        "content_hash",
+        "entry_hash",
+        "links"
+      ],
+      "properties": {
+        "path": { "type": "string", "pattern": "^(?!/)(?!.*\\\\)[^\\u0000]+$" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "authority": { "enum": ["canonical", "governance", "supporting", "operational"] },
+        "source_status": { "type": "string" },
+        "default_search": { "type": "boolean" },
+        "index_state": { "const": "current" },
+        "content_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "entry_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "links": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

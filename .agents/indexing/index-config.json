@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0",
+  "repository_root": ".",
+  "include": [
+    "*.md",
+    "*.markdown",
+    "*.txt",
+    "*.py",
+    "*.json",
+    "*.yaml",
+    "*.yml",
+    "*.toml",
+    "*.ini",
+    "*.cfg",
+    "*.csv",
+    "*.tsv"
+  ],
+  "exclude": [
+    ".git/**",
+    ".agents/generated/**",
+    ".agents/.cache/**",
+    ".agents/indexing/cache/**",
+    ".context-index-cache.json",
+    ".context-index-lock",
+    ".agents/workflow-runs/**/index-report*.json",
+    ".agents/workflow-runs/**/benchmark-report*.json",
+    ".agents/workflow-runs/**/context-package*.json",
+    "**/__pycache__/**",
+    "*.pyc",
+    "*.pyo",
+    ".env",
+    ".env.*"
+  ],
+  "link_exceptions": [
+    {
+      "glob": ".agents/skills/repo-skill-creator/DOCX-JS.md",
+      "reason": "optional skill reference supplied only when document generation needs it"
+    },
+    {
+      "glob": ".agents/skills/repo-skill-creator/EXAMPLES.md",
+      "reason": "optional skill reference supplied only when examples are needed"
+    },
+    {
+      "glob": ".agents/skills/repo-skill-creator/FORMS.md",
+      "reason": "optional skill reference supplied only when form filling is needed"
+    },
+    {
+      "glob": ".agents/skills/repo-skill-creator/OOXML.md",
+      "reason": "optional skill reference supplied only for OOXML work"
+    },
+    {
+      "glob": ".agents/skills/repo-skill-creator/REDLINING.md",
+      "reason": "optional skill reference supplied only for tracked changes"
+    },
+    {
+      "glob": ".agents/skills/repo-skill-creator/REFERENCE.md",
+      "reason": "optional skill reference supplied only for API lookup"
+    }
+  ],
+  "classification_rules": [
+    {
+      "glob": ".agents/workflow-runs/**",
+      "type": "operational-evidence",
+      "authority": "operational",
+      "source_status": "unknown",
+      "default_search": false
+    },
+    {
+      "glob": ".agents/decisions/**",
+      "type": "governance-decision",
+      "authority": "governance",
+      "source_status": "unknown",
+      "default_search": true
+    },
+    {
+      "glob": ".agents/rules/**",
+      "type": "rule",
+      "authority": "canonical",
+      "source_status": "active",
+      "default_search": true
+    },
+    {
+      "glob": ".agents/workflows/design-notes/**",
+      "type": "design-note",
+      "authority": "supporting",
+      "source_status": "unknown",
+      "default_search": true
+    },
+    {
+      "glob": ".agents/workflows/**",
+      "type": "workflow-protocol",
+      "authority": "canonical",
+      "source_status": "unknown",
+      "default_search": true
+    },
+    {
+      "glob": ".agents/skills/*/SKILL.md",
+      "type": "skill-instruction",
+      "authority": "canonical",
+      "source_status": "active",
+      "default_search": true
+    },
+    {
+      "glob": ".agents/indexing/**",
+      "type": "indexing-tool",
+      "authority": "operational",
+      "source_status": "experimental",
+      "default_search": true
+    },
+    {
+      "glob": "ai-native-builder/goals/*/README.md",
+      "type": "goal-design",
+      "authority": "canonical",
+      "source_status": "unknown",
+      "default_search": true
+    },
+    {
+      "glob": "ai-native-builder/runs/**",
+      "type": "composed-delivery",
+      "authority": "supporting",
+      "source_status": "unknown",
+      "default_search": true
+    },
+    {
+      "glob": "README.md",
+      "type": "repository-entrypoint",
+      "authority": "canonical",
+      "source_status": "active",
+      "default_search": true
+    },
+    {
+      "glob": "AGENTS.md",
+      "type": "agent-contract",
+      "authority": "canonical",
+      "source_status": "active",
+      "default_search": true
+    },
+    {
+      "glob": "AI-native-builder-curriculum-plan.md",
+      "type": "curriculum-architecture",
+      "authority": "canonical",
+      "source_status": "unknown",
+      "default_search": true
+    },
+    {
+      "glob": "curriculum-content-architecture.md",
+      "type": "curriculum-architecture",
+      "authority": "canonical",
+      "source_status": "unknown",
+      "default_search": true
+    }
+  ]
+}
