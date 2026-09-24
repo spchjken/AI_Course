@@ -4,7 +4,8 @@
 - **Candidate:** repository-native recorder and contract.
 - **Primary metric:** `6/6` fixed scenarios; all completed fixture traces valid.
 - **First independent review:** `Fail`; the earlier self-check overclaimed coverage. Findings `STE-001`–`STE-007` were accepted.
-- **Corrected candidate:** `6/6` fixed scenarios pass across 13 direct tests; independent re-review remains required.
+- **First corrected candidate:** re-review remained `Fail` after finding hardlink, sequence typing and contention gaps.
+- **Second corrected candidate:** `6/6` fixed scenarios pass across 16 direct tests; final independent re-review remains required.
 
 ## Fixed scenarios
 
@@ -17,7 +18,7 @@
 | Reject unknown skill, unsafe/absolute/UNC paths, junctions, oversized/sensitive summaries and trace-root escape | `test_invalid_skill_refs_summary_and_escape_are_rejected`; both Windows junction tests | `Pass` |
 | Validate exact schema/lifecycle and emit counts-only aggregate without summaries, refs or invalid dimensions | aggregate, tamper and invalid-dimension tests | `Pass` |
 
-Additional tests cover append-prefix integrity, active/stale lock behavior, exact nested keys/types, duplicate starts, timestamp mismatch, malformed directories and invalid-trace privacy.
+Additional tests cover successful append-prefix integrity, concurrent writers without event loss, active/stale/malformed lock behavior, hardlinked write targets, committed schema conformance, exact nested keys/types (including boolean/float sequence rejection), duplicate starts, timestamp mismatch, malformed directories and invalid-trace privacy.
 
 ## Four required layers
 
@@ -38,7 +39,7 @@ Additional tests cover append-prefix integrity, active/stale lock behavior, exac
 
 ```text
 python -m unittest discover -s .agents/execution-tracing/tests -v
-Result: 13/13 Pass
+Result: 16/16 Pass
 
 python -X utf8 <skill-validator> <each affected skill>
 Result: 3/3 Pass

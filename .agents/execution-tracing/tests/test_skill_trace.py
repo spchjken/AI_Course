@@ -4,6 +4,7 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -17,6 +18,51 @@ SPEC = importlib.util.spec_from_file_location("skill_trace", SCRIPT)
 skill_trace = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(skill_trace)
+
+
+def schema_accepts(value, schema, root):
+    if "$ref" in schema:
+        target = root
+        for part in schema["$ref"].removeprefix("#/").split("/"):
+            target = target[part]
+        return schema_accepts(value, target, root)
+    if "anyOf" in schema and not any(schema_accepts(value, item, root) for item in schema["anyOf"]):
+        return False
+    if "oneOf" in schema and sum(schema_accepts(value, item, root) for item in schema["oneOf"]) != 1:
+        return False
+    if "const" in schema and value != schema["const"]:
+        return False
+    if "enum" in schema and value not in schema["enum"]:
+        return False
+    kinds = schema.get("type")
+    if kinds:
+        kinds = [kinds] if isinstance(kinds, str) else kinds
+        matches = {
+            "object": isinstance(value, dict), "array": isinstance(value, list),
+            "string": isinstance(value, str), "null": value is None,
+            "boolean": isinstance(value, bool),
+            "integer": isinstance(value, int) and not isinstance(value, bool),
+        }
+        if not any(matches.get(kind, False) for kind in kinds):
+            return False
+    if isinstance(value, str):
+        if len(value) < schema.get("minLength", 0) or len(value) > schema.get("maxLength", 10**9):
+            return False
+        if "pattern" in schema and re.search(schema["pattern"], value) is None:
+            return False
+    if isinstance(value, int) and not isinstance(value, bool) and value < schema.get("minimum", value):
+        return False
+    if isinstance(value, dict):
+        if any(key not in value for key in schema.get("required", [])):
+            return False
+        properties = schema.get("properties", {})
+        if schema.get("additionalProperties") is False and any(key not in properties for key in value):
+            return False
+        if any(not schema_accepts(item, properties[key], root) for key, item in value.items() if key in properties):
+            return False
+    if isinstance(value, list) and "items" in schema:
+        return all(schema_accepts(item, schema["items"], root) for item in value)
+    return True
 
 
 class SkillTraceTests(unittest.TestCase):
@@ -71,12 +117,15 @@ class SkillTraceTests(unittest.TestCase):
 
     def test_event_types_and_second_terminal_are_rejected(self) -> None:
         started = skill_trace.create_trace(self.start_args())
+        events_path = self.root / started["trace_path"] / "events.jsonl"
+        prefix = events_path.read_bytes()
         for event_type in ("artifact", "check", "correction", "retry", "limitation", "note"):
             skill_trace.record_event(
                 argparse.Namespace(
                     root=str(self.root), trace=started["trace_path"], type=event_type, summary=event_type, ref=[]
                 )
             )
+        self.assertTrue(events_path.read_bytes().startswith(prefix))
         finish = argparse.Namespace(
             root=str(self.root), trace=started["trace_path"], outcome="failed", summary="Failed safely", output_ref=[]
         )
@@ -166,6 +215,8 @@ class SkillTraceTests(unittest.TestCase):
             lambda m, e: m.update(parent_workflow_run={"bad": True}),
             lambda m, e: e.append(dict(e[0], seq=2)),
             lambda m, e: e[0].update(at="2020-01-01T00:00:00Z"),
+            lambda m, e: e[0].update(seq=True),
+            lambda m, e: e[0].update(seq=1.0),
         )
         for mutation in mutations:
             started = skill_trace.create_trace(self.start_args())
@@ -176,6 +227,21 @@ class SkillTraceTests(unittest.TestCase):
             (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
             (directory / "events.jsonl").write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
             self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"])
+
+    def test_committed_schemas_accept_generated_data_and_reject_type_tampering(self) -> None:
+        started = skill_trace.create_trace(self.start_args())
+        directory = self.root / started["trace_path"]
+        manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+        events = skill_trace.read_events(directory / "events.jsonl")
+        manifest_schema = json.loads((SCRIPT.parent / "skill-trace.schema.json").read_text(encoding="utf-8"))
+        event_schema = json.loads((SCRIPT.parent / "skill-event.schema.json").read_text(encoding="utf-8"))
+        self.assertTrue(schema_accepts(manifest, manifest_schema, manifest_schema))
+        self.assertTrue(all(schema_accepts(event, event_schema, event_schema) for event in events))
+        for bad_seq in (True, 1.0):
+            tampered = dict(events[0], seq=bad_seq)
+            self.assertFalse(schema_accepts(tampered, event_schema, event_schema))
+        tampered_manifest = dict(manifest, request_summary=7)
+        self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
 
     def test_invalid_trace_dimensions_never_reach_aggregate(self) -> None:
         marker = "PRIVATE_MARKER_DO_NOT_EXPORT"
@@ -194,10 +260,39 @@ class SkillTraceTests(unittest.TestCase):
         lock = directory / ".append.lock"
         lock.write_text(json.dumps({"pid": os.getpid(), "created": 0}), encoding="utf-8")
         with self.assertRaises(skill_trace.TraceError):
-            skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="blocked", ref=[]))
+            skill_trace.acquire_lock(lock, wait_seconds=0.05)
         lock.write_text(json.dumps({"pid": 2147483647, "created": 0}), encoding="utf-8")
         skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="recovered", ref=[]))
         self.assertFalse(lock.exists())
+        lock.write_text("", encoding="utf-8")
+        os.utime(lock, (0, 0))
+        skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="recovered malformed", ref=[]))
+
+    def test_concurrent_writers_are_serialized_without_event_loss(self) -> None:
+        started = skill_trace.create_trace(self.start_args())
+        def append(index):
+            skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary=f"note {index}", ref=[]))
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            list(pool.map(append, range(24)))
+        events = skill_trace.read_events(self.root / started["trace_path"] / "events.jsonl")
+        self.assertEqual([event["seq"] for event in events], list(range(1, 26)))
+
+    def test_hardlinked_events_file_is_rejected_without_external_write(self) -> None:
+        started = skill_trace.create_trace(self.start_args())
+        events = self.root / started["trace_path"] / "events.jsonl"
+        outside = self.root.parent / f"outside-{os.getpid()}.jsonl"
+        original = events.read_bytes()
+        events.unlink()
+        outside.write_bytes(original)
+        try:
+            os.link(outside, events)
+            with self.assertRaises(skill_trace.TraceError):
+                skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="blocked", ref=[]))
+            self.assertEqual(outside.read_bytes(), original)
+        finally:
+            if events.exists():
+                events.unlink()
+            outside.unlink(missing_ok=True)
 
     @unittest.skipUnless(os.name == "nt", "Windows junction behavior")
     def test_junction_trace_root_is_rejected_without_outside_write(self) -> None:

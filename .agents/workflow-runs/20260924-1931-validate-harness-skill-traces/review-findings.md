@@ -48,3 +48,45 @@
 - **Bằng chứng:** `agent-dispatch-protocol.md` thêm trường `Skill trace`; `AGENTS.md` yêu cầu đưa cả ID/path vào task contract và log. `orchestration-log.md` hiện không có cột này; ST-2 chỉ nhúng hai execution ID vào output và không ghi trace path. Raw workflow trace hiện vẫn open; điều này hợp lệ khi run đang diễn ra nhưng phải được đóng trước bàn giao cuối.
 - **Hệ quả:** Evidence tự-host của trial không hoàn toàn tái dựng được theo contract mà candidate muốn ratify.
 - **Điều kiện đóng:** Điều phối viên bổ sung trường riêng với ID/path hoặc limitation, đồng bộ candidate/evidence commit, và đóng workflow trace với outcome/output refs trước final handoff.
+
+---
+
+## Re-review disposition — corrective commit `956e742`
+
+### STE-001 — `Reopened / Major`
+
+Junction/reparse protections đạt các fixture mới, nhưng mệnh đề “mọi write bị giới hạn trong trace root” chưa đạt. Trên Windows, reviewer tạo hardlink từ trace `events.jsonl` tới một file ngoài fixture repository. `event` trả exit `0` và tăng file ngoài từ 111 lên 209 byte. `Path.is_symlink()`, `Path.is_junction()` và reparse attribute đều không nhận diện hardlink; code không kiểm `st_nlink` trước `open("ab")`.
+
+**Điều kiện đóng bổ sung:** từ chối multi-link file write target hoặc dùng open/identity protocol bảo đảm handle thuộc file mới, riêng trong trace directory; test phải chứng minh hardlink target ngoài không đổi và recorder trả lỗi có kiểm soát.
+
+### STE-002 — `Reopened / Major`
+
+Validator đã sửa các mismatch từng được nêu, nhưng lifecycle vẫn chấp nhận `seq` sai kiểu. Fixture `"seq": true` được coi là valid vì Python so sánh `True == 1`; float `1.0` có cùng lớp rủi ro. Ngoài ra manifest schema tại `skill-trace.schema.json` vẫn chỉ dùng type cho nhiều trường trong khi validator áp pattern/format/slug/path constraints, nên một consumer dùng schema có thể chấp nhận manifest mà CLI từ chối.
+
+**Điều kiện đóng bổ sung:** yêu cầu `seq` là integer dương và loại `bool`; đồng bộ schema với exact name/path/SHA/HEAD/timestamp/slug/ref constraints, hoặc xác định rõ schema nào là nguồn máy đọc đầy đủ và kiểm thử hai chiều schema ↔ validator.
+
+### STE-003 — `Resolved`
+
+Invalid traces bị loại trước khi aggregate đọc skill/version/event dimensions. Fixture marker không xuất marker ra artifact/stdout payload và vẫn đếm `invalid_count=1`.
+
+### STE-004 — `Reopened / Major`
+
+Coverage 13 test là cải thiện thực, nhưng claim `6/6` vẫn không đạt vì test không phát hiện hai lỗi Major ở `STE-001`/`STE-002`. Test append-prefix chỉ chứng minh terminal thứ hai bị từ chối không sửa file, chưa chứng minh successful append giữ nguyên prefix; không có concurrent-writer test hay official schema conformance test.
+
+**Điều kiện đóng bổ sung:** thêm trực tiếp hardlink, `seq` bool/float, schema two-way, successful append-prefix và concurrent writer fixtures; validation report chỉ được ghi `6/6` sau khi các phép này đạt.
+
+### STE-005 — `Unresolved / Minor`
+
+PID/time metadata và guarded recovery hoạt động với metadata hợp lệ. Tuy nhiên empty/malformed stale lock — trạng thái có thể xuất hiện khi crash giữa `os.open` và `json.dump` — bị khóa vĩnh viễn vì parse failure luôn đặt `stale=False`. Concurrent writers bị từ chối tức thời; fixture 12 process chỉ lưu 3 note nhưng trace còn valid.
+
+**Điều kiện đóng bổ sung:** có recovery an toàn cho malformed lock dựa trên file age/atomic lock metadata, hoặc dùng locking primitive không để lại trạng thái nửa ghi; test concurrent writers và tài liệu hóa rõ retry/single-writer semantics.
+
+### STE-006 — `Resolved`
+
+Portable export nay yêu cầu expected-invocation roster độc lập và dùng `Not verified` khi không có; disposition cũng ghi rõ file là local/ignored export.
+
+### STE-007 — `Partially resolved / Minor`
+
+Cột `Skill trace`, ID và path đã được thêm. Chưa có orchestration row cho corrective implementation/re-review; implementation log chưa ghi SHA `956e742`; raw workflow-orchestration trace còn open. Đây là công việc lifecycle trước final handoff, không phải bằng chứng `Pass` hiện tại.
+
+**Điều kiện đóng bổ sung:** ghi work units/corrective SHA, đóng trace với output refs sau khi workflow thật sự kết thúc, rồi tái sinh/validate derived index.

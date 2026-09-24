@@ -67,3 +67,72 @@ Quét candidate/hồ sơ/raw trace theo các mẫu private key, OpenAI/GitHub/AW
 2. Bổ sung test Windows junction/symlink, schema/lifecycle tamper, invalid-trace aggregate, concurrency/append và toàn bộ mệnh đề của sáu kịch bản đã khóa.
 3. Đồng bộ hồ sơ Git/skill trace, đóng trace workflow khi lượt kết thúc, sửa claim portable và tái sinh index sau khi hồ sơ ổn định.
 4. Re-review phải chạy trên commit mới, giữ nguyên baseline và chỉ chấp nhận khi không còn `Blocker`/`Major`.
+
+---
+
+## Re-review commit `956e742`
+
+- **Ngày re-review:** 2026-09-25
+- **Corrective commit:** `956e742` (`Harden skill trace validation after review`)
+- **Phán quyết:** `Fail`
+- **Lý do:** `STE-001`, `STE-002` và `STE-004` vẫn còn `Major`; `STE-005` và `STE-007` còn `Minor`. `STE-003` và `STE-006` đã đóng bằng bằng chứng trực tiếp.
+
+Reviewer đọc lại corrective diff, implementation/docs/tests/disposition, raw traces và portable export; không tin kết luận sửa của bên thực hiện. Implementation không bị reviewer sửa.
+
+### Kết quả đóng finding
+
+| Finding | Re-review | Bằng chứng |
+|---|---|---|
+| `STE-001` | `Reopened — Major` | Junction/reparse root và nested directory nay bị từ chối, nhưng Windows hardlink của `events.jsonl` vẫn vượt bảo vệ. Fixture thay `events.jsonl` bằng hardlink tới file ngoài fixture repo; lệnh `event` exit `0` và file ngoài tăng từ 111 lên 209 byte. `reject_link_or_reparse` tại `skill_trace.py:63-70` không kiểm `st_nlink`; append tại `223-233` mở hardlink bằng `ab`. |
+| `STE-002` | `Reopened — Major` | Exact nested manifest types và nhiều lifecycle invariant đã được thêm, nhưng `seq` không được kiểm kiểu. Fixture đổi event đầu thành `"seq": true`; `validate` trả `valid: true`, exit `0`, vì `True == 1` tại `skill_trace.py:503-504`. JSON schema vẫn cho phép nhiều giá trị mà validator từ chối (`repository.head`, `started_at`, skill name/path và slug chỉ có type, thiếu pattern/format), nên schema/validator chưa tương đương hai chiều. |
+| `STE-003` | `Resolved` | `aggregate_command` bỏ mọi item invalid trước khi dùng dimension (`skill_trace.py:590-601`). Fixture marker invalid trả `invalid_count: 1`, `valid_count: 2` và marker không xuất hiện trong file aggregate. |
+| `STE-004` | `Reopened — Major` | Suite tăng lên 13 test và đã bao phủ process start concurrency, junction, UNC, invalid aggregate, prefix sau terminal rejection và một số mutation. Tuy nhiên nó không bắt hardlink escape hay non-integer `seq`, không chạy official schema, không thử concurrent writers, và prefix assertion không kiểm một successful append. Vì candidate vẫn có hai lỗi Major trong chính scenario path/lifecycle, claim corrected `6/6` chưa trung thực. |
+| `STE-005` | `Unresolved — Minor` | Lock hợp lệ stale/dead được thu hồi, nhưng lock rỗng/malformed do crash trong lúc ghi metadata không bao giờ được thu hồi: fixture lock rỗng cũ một giờ vẫn trả exit `2` và tồn tại. 12 concurrent `event` processes chỉ ghi được 3 note; trace không hỏng nhưng phần còn lại bị từ chối ngay, chưa có test hay tài liệu hóa single-writer/nonblocking assumption. |
+| `STE-006` | `Resolved` | Portable export dòng 484 nay nói invocation thiếu chỉ phát hiện được khi có expected roster độc lập; nếu không coverage là `Not verified`. Trạng thái local/ignored được disposition ghi rõ. |
+| `STE-007` | `Partially resolved — Minor` | Orchestration log đã có cột `Skill trace` và đủ ID/path cho ST-1/ST-2. Tuy nhiên chưa có work-unit row cho corrective implementation/re-review, `implementation-log.md` vẫn ghi corrective commit `pending`, và workflow trace vẫn open. Các mục này phải hoàn tất trước final handoff/ratification. |
+
+### Phép kiểm tra re-review
+
+```text
+python -X utf8 -m unittest discover -s .agents/execution-tracing/tests -v
+=> 13/13 pass, gồm 2 Windows junction fixtures
+
+python -X utf8 <skill-validator> <each affected skill>
+=> 3/3 pass
+
+python -X utf8 -m unittest discover -s .agents/indexing/tests -v
+=> 8/8 pass
+
+python -X utf8 .agents/execution-tracing/skill_trace.py validate --all
+=> 2/2 valid; 1 closed, 1 open dưới 24 giờ; exit 0
+
+Adversarial Windows hardlink events.jsonl fixture
+=> event exit 0; outside file 111 -> 209 bytes: Fail
+
+Adversarial lifecycle fixture with first event seq=true
+=> validator valid=true, exit 0: Fail
+
+Adversarial invalid-trace aggregate marker fixture
+=> marker absent; invalid_count=1: Pass
+
+Adversarial empty stale lock fixture
+=> event exit 2; stale lock remains: Minor concern
+
+12 concurrent event processes on one trace
+=> final trace valid, only 3 note events persisted; nonblocking writer failures observed
+
+python -X utf8 .agents/indexing/validate_index.py --index .agents/generated/context-index.json
+=> schema valid; 6 stale sources; exit 1
+
+python -X utf8 .agents/indexing/sync_index.py --check
+=> exit 1
+```
+
+Index chưa được tái sinh sau corrective commit và sẽ tiếp tục stale khi hai tệp reviewer thay đổi. Đây là cổng pre-ratification còn pending, không phải nguyên nhân chính của verdict hiện tại.
+
+### Điều kiện re-review tiếp theo
+
+1. Chặn hardlink/multi-link write target hoặc mở append theo cơ chế không-follow/identity-safe; thêm fixture chứng minh file ngoài không đổi.
+2. Kiểm exact type cho event `seq` (`int`, không phải `bool`) và đồng bộ JSON schema với mọi constraint mà validator coi là contract; thêm schema con cho events hoặc tài liệu/schema máy đọc tương đương.
+3. Mở rộng scenario tests cho successful append prefix, concurrent-writer contract và malformed stale-lock recovery; sửa `6/6` chỉ sau khi toàn bộ biến thể đã khóa đạt.
+4. Hoàn tất lifecycle evidence, đóng workflow trace, đồng bộ corrective commit/work units và tái sinh index trước ratification.

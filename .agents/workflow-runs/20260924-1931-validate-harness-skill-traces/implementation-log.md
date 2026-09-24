@@ -5,7 +5,8 @@
 - **Baseline:** `a65e86caff89feb4e7c065fa5a22443a83d4d23e`
 - **Candidate implementation commit:** `1f93bde1371b9b87efa3b8d211efcafb793a0ee8`
 - **Initial evidence commit:** `cd811a4d8ff8fb6d0374d16985d6f13f60758f63`
-- **Corrective commit after first review:** pending
+- **Corrective commit after first review:** `956e742a81a6d3e0ee63c481f75545809ea1aa3b`
+- **Second corrective commit:** pending
 
 ## Implemented
 
@@ -22,6 +23,7 @@
 - The first unit run exposed that the initial `started` append tried to read a nonexistent `events.jsonl`; five tests errored. The implementer accepted the local defect, treated a missing file as an empty log only inside locked append, and reran the full suite successfully.
 - The validator was then hardened to reject extra manifest/event fields, validate repository/skill/privacy shapes, expose malformed trace directories and report skill-version drift.
 - Independent review rejected the first candidate with `STE-001`–`STE-007`. All findings were accepted. The correction rejects Windows junction/reparse writes, enforces exact schema/lifecycle invariants, excludes invalid dimensions from aggregate output, adds guarded stale-lock recovery and expands direct tests from 7 to 13.
+- Re-review reopened hardlink safety, boolean sequence typing, schema parity, concurrent append and malformed-lock recovery. The second correction adds handle-level hardlink rejection, exact integer checks, a machine-readable event schema, schema parity fixtures, 30-second bounded contention retry with in-process serialization, and stale malformed-lock recovery.
 
 ## Self-check boundaries
 

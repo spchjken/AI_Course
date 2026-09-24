@@ -8,6 +8,7 @@ import re
 import secrets
 import subprocess
 import sys
+import threading
 import time
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
@@ -30,6 +31,7 @@ SECRET_PATTERNS = (
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
     re.compile(r"[?&](?:access_?token|api_?key|secret|token)=[^&\s]+", re.IGNORECASE),
 )
+_THREAD_LOCKS: dict[str, threading.Lock] = {}
 
 
 class TraceError(ValueError):
@@ -68,6 +70,8 @@ def reject_link_or_reparse(path: Path, label: str) -> None:
         raise TraceError(f"cannot inspect {label}: {path}") from exc
     if path.is_symlink() or junction or attributes & 0x400:
         raise TraceError(f"{label} must not be a symlink, junction, or reparse point")
+    if path.is_file() and path.stat(follow_symlinks=False).st_nlink != 1:
+        raise TraceError(f"{label} must not be a hardlink or multi-link file")
 
 
 def safe_existing_path(runtime: Path, path: Path, label: str) -> Path:
@@ -214,6 +218,12 @@ def read_events(path: Path) -> list[dict]:
 
 
 def append_event(directory: Path, event: dict) -> None:
+    local_lock = _THREAD_LOCKS.setdefault(str(directory.resolve()), threading.Lock())
+    with local_lock:
+        append_event_locked(directory, event)
+
+
+def append_event_locked(directory: Path, event: dict) -> None:
     runtime = directory.parent
     safe_existing_path(runtime, directory, "trace directory")
     lock = directory / ".append.lock"
@@ -228,6 +238,8 @@ def append_event(directory: Path, event: dict) -> None:
         event["seq"] = len(events) + 1
         encoded = (json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
         with events_path.open("ab") as handle:
+            if os.fstat(handle.fileno()).st_nlink != 1:
+                raise TraceError("events file must not be a hardlink or multi-link file")
             handle.write(encoded)
             handle.flush()
             os.fsync(handle.fileno())
@@ -250,24 +262,34 @@ def process_alive(pid: int) -> bool:
         return False
 
 
-def acquire_lock(lock: Path, stale_seconds: int = 300) -> None:
-    for attempt in range(2):
+def acquire_lock(lock: Path, stale_seconds: int = 300, wait_seconds: float = 30.0) -> None:
+    deadline = time.monotonic() + wait_seconds
+    while True:
         try:
             descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
                 json.dump({"pid": os.getpid(), "created": time.time()}, handle)
             return
         except FileExistsError as exc:
-            reject_link_or_reparse(lock, "append lock")
+            try:
+                reject_link_or_reparse(lock, "append lock")
+                file_age = max(0.0, time.time() - lock.stat().st_mtime)
+            except (FileNotFoundError, TraceError):
+                if not lock.exists():
+                    continue
+                raise
             try:
                 metadata = read_json(lock)
                 stale = time.time() - float(metadata.get("created", 0)) > stale_seconds
                 owner_dead = not process_alive(int(metadata.get("pid", -1)))
             except (TraceError, TypeError, ValueError):
-                stale = False
-                owner_dead = False
-            if attempt == 0 and stale and owner_dead:
+                stale = file_age > stale_seconds
+                owner_dead = True
+            if stale and owner_dead:
                 lock.unlink()
+                continue
+            if time.monotonic() < deadline:
+                time.sleep(0.01)
                 continue
             raise TraceError("trace is currently locked by another writer") from exc
 
@@ -500,7 +522,8 @@ def validate_trace(directory: Path, root: Path, max_open_hours: int) -> dict:
         extra_event = sorted(set(event) - allowed_event)
         if extra_event:
             errors.append(f"unexpected fields in event {index}: {', '.join(extra_event)}")
-        if event.get("seq") != index:
+        seq = event.get("seq")
+        if not isinstance(seq, int) or isinstance(seq, bool) or seq != index:
             errors.append(f"event sequence mismatch at {index}")
         try:
             event_time = parse_timestamp(event.get("at"), f"event {index}")
