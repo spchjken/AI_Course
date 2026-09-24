@@ -11,6 +11,7 @@
 - **Fourth corrected candidate:** the same 17 tests now apply invalid ref, slug and timestamp fixtures to both schemas and validator, plus stale legacy-lock migration; final independent re-review remains required.
 - **Fourth re-review:** lock migration passed, but an extended canonical parity matrix remained `Fail`.
 - **Fifth corrected candidate:** the two-way matrix now includes URL backslashes/case, padded slugs, malformed IPv6 and calendar-invalid timestamps; final independent re-review remains required.
+- **Owner stop:** further review loops were explicitly stopped. Candidate `6ce41a4` passes all local checks below, while independent acceptance for this exact SHA remains `Not verified`.
 
 ## Fixed scenarios
 
