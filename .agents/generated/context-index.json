@@ -1598,9 +1598,9 @@
     },
     {
       "authority": "operational",
-      "content_hash": "36ed17bb398e2cb35aec5a75664ee373a32b217359849c7f672a77e5dc6cd0bb",
+      "content_hash": "0aaf38bb31cdb43262821baa586e0240d7a773602609731984d88cb5e343d9d3",
       "default_search": false,
-      "entry_hash": "221452a50fdd885bcaf5ed0f168f281166994a9b7df50fc80cde6592e8b52dd3",
+      "entry_hash": "51b886d9b08a33c90dff4c86859b74ea8bf2067719749cc4046987036a14caf0",
       "index_state": "current",
       "links": [],
       "path": ".agents/workflow-runs/20260924-1931-validate-harness-skill-traces/implementation-log.md",
@@ -1622,9 +1622,9 @@
     },
     {
       "authority": "operational",
-      "content_hash": "49594a7bc31736f865dfb72c19da619eb42ef4c4076bb55ead6db918bcf37ce0",
+      "content_hash": "a5e6b51d6b3dbd844b5ea64e50dcfdfa44d983281b4e61adc47ad1502b0c5dbd",
       "default_search": false,
-      "entry_hash": "8d645f21d41cbb9cc2b41f4b8a102a489061347c4ebd2706f74ae513c9ff054a",
+      "entry_hash": "082c954df5ebe368ac681d4166817ad11ca415c918296072d97ad057d0a8814a",
       "index_state": "current",
       "links": [],
       "path": ".agents/workflow-runs/20260924-1931-validate-harness-skill-traces/orchestration-log.md",
@@ -2460,5 +2460,5 @@
   ],
   "generator_version": "0.1",
   "schema_version": "1.0",
-  "tree_fingerprint": "c0aa736f966b1b4bb0ab9343b176dd1e4552905d7cc587b52115bd4991ab57c2"
+  "tree_fingerprint": "cb576971dcb82acfec145aada0c433c59eaa8667143f9e45689ca46ee42b2e52"
 }

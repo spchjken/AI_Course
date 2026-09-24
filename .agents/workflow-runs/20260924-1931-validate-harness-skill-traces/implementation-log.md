@@ -3,7 +3,8 @@
 - **Implementer:** `/root`
 - **Branch:** `codex/20260924-skill-execution-traces`
 - **Baseline:** `a65e86caff89feb4e7c065fa5a22443a83d4d23e`
-- **Commit:** pending independent review and owner ratification
+- **Candidate implementation commit:** `1f93bde1371b9b87efa3b8d211efcafb793a0ee8`
+- **Evidence/index follow-up commit:** pending before independent review
 
 ## Implemented
 
