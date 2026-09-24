@@ -242,6 +242,13 @@ class SkillTraceTests(unittest.TestCase):
             self.assertFalse(schema_accepts(tampered, event_schema, event_schema))
         tampered_manifest = dict(manifest, request_summary=7)
         self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
+        for bad_ref in ("ftp://example.com/file", r"..\outside.md", "https://user:pass@example.com/file", "https://example.com/file?q=1"):
+            tampered_manifest = dict(manifest, input_refs=[bad_ref])
+            self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema), bad_ref)
+            tampered_event = dict(events[0], refs=[bad_ref])
+            self.assertFalse(schema_accepts(tampered_event, event_schema, event_schema), bad_ref)
+        tampered_manifest = dict(manifest, parent_workflow_run="../outside")
+        self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
 
     def test_invalid_trace_dimensions_never_reach_aggregate(self) -> None:
         marker = "PRIVATE_MARKER_DO_NOT_EXPORT"
@@ -258,13 +265,16 @@ class SkillTraceTests(unittest.TestCase):
         started = skill_trace.create_trace(self.start_args())
         directory = self.root / started["trace_path"]
         lock = directory / ".append.lock"
-        lock.write_text(json.dumps({"pid": os.getpid(), "created": 0}), encoding="utf-8")
+        lock.mkdir()
+        (lock / "owner.json").write_text(json.dumps({"pid": os.getpid(), "created": 0}), encoding="utf-8")
         with self.assertRaises(skill_trace.TraceError):
             skill_trace.acquire_lock(lock, wait_seconds=0.05)
-        lock.write_text(json.dumps({"pid": 2147483647, "created": 0}), encoding="utf-8")
+        (lock / "owner.json").write_text(json.dumps({"pid": 2147483647, "created": 0}), encoding="utf-8")
+        os.utime(lock, (0, 0))
         skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="recovered", ref=[]))
         self.assertFalse(lock.exists())
-        lock.write_text("", encoding="utf-8")
+        lock.mkdir()
+        (lock / "owner.json").write_text("", encoding="utf-8")
         os.utime(lock, (0, 0))
         skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="recovered malformed", ref=[]))
 
@@ -276,6 +286,18 @@ class SkillTraceTests(unittest.TestCase):
             list(pool.map(append, range(24)))
         events = skill_trace.read_events(self.root / started["trace_path"] / "events.jsonl")
         self.assertEqual([event["seq"] for event in events], list(range(1, 26)))
+
+    def test_concurrent_process_writers_are_serialized_without_event_loss(self) -> None:
+        started = skill_trace.create_trace(self.start_args())
+        def append(index):
+            command = [os.sys.executable, "-X", "utf8", str(SCRIPT), "--root", str(self.root), "event", "--trace", started["trace_path"], "--type", "note", "--summary", f"process {index}"]
+            return subprocess.run(command, capture_output=True, text=True, timeout=35)
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            results = list(pool.map(append, range(12)))
+        self.assertTrue(all(result.returncode == 0 for result in results), [result.stderr for result in results])
+        events = skill_trace.read_events(self.root / started["trace_path"] / "events.jsonl")
+        self.assertEqual([event["seq"] for event in events], list(range(1, 14)))
+        self.assertFalse((self.root / started["trace_path"] / ".append.lock").exists())
 
     def test_hardlinked_events_file_is_rejected_without_external_write(self) -> None:
         started = skill_trace.create_trace(self.start_args())

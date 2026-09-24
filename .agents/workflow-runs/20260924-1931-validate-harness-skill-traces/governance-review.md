@@ -136,3 +136,72 @@ Index chưa được tái sinh sau corrective commit và sẽ tiếp tục stale
 2. Kiểm exact type cho event `seq` (`int`, không phải `bool`) và đồng bộ JSON schema với mọi constraint mà validator coi là contract; thêm schema con cho events hoặc tài liệu/schema máy đọc tương đương.
 3. Mở rộng scenario tests cho successful append prefix, concurrent-writer contract và malformed stale-lock recovery; sửa `6/6` chỉ sau khi toàn bộ biến thể đã khóa đạt.
 4. Hoàn tất lifecycle evidence, đóng workflow trace, đồng bộ corrective commit/work units và tái sinh index trước ratification.
+
+---
+
+## Final re-review commit `f416cc0`
+
+- **Ngày:** 2026-09-25
+- **Candidate:** `f416cc0` (`Close skill trace safety gaps`)
+- **Phán quyết:** `Fail`
+- **Finding chặn:** `STE-002`, `STE-004` và `STE-005` còn `Major`. `STE-001`, `STE-003` và `STE-006` đã đóng. `STE-007` chỉ còn các bước final handoff, không được tính là lỗi implementation.
+
+### Đối chiếu từng finding
+
+| Finding | Final re-review | Bằng chứng |
+|---|---|---|
+| `STE-001` | `Resolved` | Fixture hardlink độc lập: `event` exit `2`, file ngoài không đổi; junction tests cũng đạt. Code kiểm multi-link cả trước open và trên file handle (`skill_trace.py:65-74, 232-245`). |
+| `STE-002` | `Unresolved — Major` | Bool/float `seq` nay bị từ chối. Tuy nhiên schema parity vẫn sai trên input an toàn/riêng tư quan trọng: chính helper schema của candidate trả `true` cho manifest ref `ftp://example.com/x`, `..\outside.md`, URL có credentials/query; validator trả `false`. `skill-event.schema.json` chỉ yêu cầu ref là non-empty string nên cũng nhận `../outside.md`. Manifest slug `../run` được schema nhận nhưng `validate_slug` từ chối. Xem finding chi tiết bên dưới. |
+| `STE-003` | `Resolved` | Invalid aggregate marker không xuất hiện; `invalid_count=1`. Summary/ref của trace hợp lệ vẫn không xuất ra aggregate. |
+| `STE-004` | `Unresolved — Major` | Successful append-prefix, hardlink, seq typing và nhiều regression đã có test. Tuy nhiên schema parity matrix và cross-process writer behavior chưa được test đúng; suite dùng threads cho writer serialization. Hai lỗi Major còn tái hiện nên báo cáo `16/16` và `6/6` vẫn vượt bằng chứng. |
+| `STE-005` | `Unresolved — Major` | Malformed stale lock cũ đã phục hồi đúng. Nhưng fixture 4 process trên Windows tạo race giữa waiter đọc lock và owner `unlink`: hai command thành công, một command ghi event rồi exit với `WinError 32`, một command còn chờ sau 10 giây; 3 notes đã tồn tại và `.append.lock` mồ côi giữ PID của process đã lỗi. Đây là outcome mơ hồ, có thể gây duplicate khi retry và trái claim “concurrent writers without event loss”. |
+| `STE-006` | `Resolved` | Portable guidance tiếp tục giữ expected-roster/no-platform-hook limitation đúng. |
+| `STE-007` | `Pending final handoff — không phải lỗi implementation` | ST-4 đến ST-6 đã được ghi và trace column/path tồn tại. Việc ghi SHA `f416cc0`, thêm final-review work unit, đóng workflow trace và tái sinh index chỉ có thể hoàn tất sau kết luận này; chúng là cổng handoff/ratification, không làm thay đổi verdict code. |
+
+### Phép kiểm tra final
+
+```text
+python -X utf8 -m unittest discover -s .agents/execution-tracing/tests -v
+=> 16/16 pass
+
+python -X utf8 <skill-validator> <each affected skill>
+=> 3/3 pass
+
+python -X utf8 -m unittest discover -s .agents/indexing/tests -v
+=> 8/8 pass
+
+python -X utf8 .agents/execution-tracing/skill_trace.py validate --all
+=> 2/2 valid; workflow trace còn open dưới 24 giờ; exit 0
+
+Hardlink adversarial fixture
+=> event exit 2; outside bytes unchanged: Pass
+
+seq=true và seq=1.0 fixtures
+=> cả hai invalid, exit 2: Pass
+
+Malformed stale lock cũ một giờ
+=> event exit 0; lock removed: Pass
+
+Invalid aggregate marker
+=> marker absent; invalid_count=1: Pass
+
+Schema parity adversarial matrix
+=> Fail: manifest/event schemas nhận unsafe refs/slug mà validator từ chối
+
+4 cross-process concurrent event writers on Windows
+=> Fail: 2 clean success; 1 WinError 32 after event write; 1 still waiting; orphan lock; 3 notes present
+
+python -X utf8 .agents/indexing/validate_index.py --index .agents/generated/context-index.json
+=> schema valid; 7 stale sources; exit 1
+
+python -X utf8 .agents/indexing/sync_index.py --check
+=> exit 1
+```
+
+Root `.gitignore` vẫn không thuộc candidate diff; raw traces vẫn bị nested ignore và excluded khỏi derived index. Quét credential pattern không phát hiện secret thật ngoài token giả trong negative test.
+
+### Điều kiện cho lần re-review kế tiếp
+
+1. Làm cho manifest/event schema từ chối cùng ref/slug/timestamp mà validator từ chối; thêm adversarial parity matrix hai chiều, không chỉ generated-data/type smoke test.
+2. Sửa Windows cross-process lock để waiter không giữ file handle chặn owner unlink; command không được báo lỗi sau khi event đã commit. Thêm subprocess fixture lặp lại đủ để bắt race và xác nhận mọi command outcome khớp đúng một event.
+3. Chỉ khôi phục claim `6/6` khi hai finding trên đóng. Sau reviewer `Pass`, Điều phối viên mới hoàn tất `STE-007`, tái sinh index và mở ratification gate.

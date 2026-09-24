@@ -244,10 +244,7 @@ def append_event_locked(directory: Path, event: dict) -> None:
             handle.flush()
             os.fsync(handle.fileno())
     finally:
-        try:
-            lock.unlink()
-        except FileNotFoundError:
-            pass
+        release_lock(lock)
 
 
 def process_alive(pid: int) -> bool:
@@ -266,9 +263,15 @@ def acquire_lock(lock: Path, stale_seconds: int = 300, wait_seconds: float = 30.
     deadline = time.monotonic() + wait_seconds
     while True:
         try:
-            descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-                json.dump({"pid": os.getpid(), "created": time.time()}, handle)
+            lock.mkdir()
+            try:
+                with (lock / "owner.json").open("x", encoding="utf-8") as handle:
+                    json.dump({"pid": os.getpid(), "created": time.time()}, handle)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+            except Exception:
+                release_lock(lock)
+                raise
             return
         except FileExistsError as exc:
             try:
@@ -278,20 +281,31 @@ def acquire_lock(lock: Path, stale_seconds: int = 300, wait_seconds: float = 30.
                 if not lock.exists():
                     continue
                 raise
-            try:
-                metadata = read_json(lock)
-                stale = time.time() - float(metadata.get("created", 0)) > stale_seconds
-                owner_dead = not process_alive(int(metadata.get("pid", -1)))
-            except (TraceError, TypeError, ValueError):
-                stale = file_age > stale_seconds
-                owner_dead = True
-            if stale and owner_dead:
-                lock.unlink()
-                continue
+            if file_age > stale_seconds:
+                try:
+                    metadata = read_json(lock / "owner.json")
+                    owner_dead = not process_alive(int(metadata.get("pid", -1)))
+                except (TraceError, TypeError, ValueError):
+                    owner_dead = True
+                if owner_dead:
+                    release_lock(lock)
+                    continue
             if time.monotonic() < deadline:
                 time.sleep(0.01)
                 continue
             raise TraceError("trace is currently locked by another writer") from exc
+
+
+def release_lock(lock: Path) -> None:
+    try:
+        for child in lock.iterdir():
+            reject_link_or_reparse(child, "append lock metadata")
+            if not child.is_file():
+                raise TraceError("append lock contains unexpected entries")
+            child.unlink()
+        lock.rmdir()
+    except FileNotFoundError:
+        pass
 
 
 def create_trace(args: argparse.Namespace) -> dict:

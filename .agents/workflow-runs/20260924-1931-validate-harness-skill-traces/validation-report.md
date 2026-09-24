@@ -5,7 +5,8 @@
 - **Primary metric:** `6/6` fixed scenarios; all completed fixture traces valid.
 - **First independent review:** `Fail`; the earlier self-check overclaimed coverage. Findings `STE-001`–`STE-007` were accepted.
 - **First corrected candidate:** re-review remained `Fail` after finding hardlink, sequence typing and contention gaps.
-- **Second corrected candidate:** `6/6` fixed scenarios pass across 16 direct tests; final independent re-review remains required.
+- **Second corrected candidate:** final re-review remained `Fail` because schema refs diverged and real Windows processes exposed a lock-file sharing race.
+- **Third corrected candidate:** `6/6` fixed scenarios pass across 17 direct tests, including 12 concurrent subprocess writers; final independent re-review remains required.
 
 ## Fixed scenarios
 
@@ -39,7 +40,7 @@ Additional tests cover successful append-prefix integrity, concurrent writers wi
 
 ```text
 python -m unittest discover -s .agents/execution-tracing/tests -v
-Result: 16/16 Pass
+Result: 17/17 Pass
 
 python -X utf8 <skill-validator> <each affected skill>
 Result: 3/3 Pass

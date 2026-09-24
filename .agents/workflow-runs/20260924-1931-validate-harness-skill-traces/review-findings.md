@@ -90,3 +90,51 @@ Portable export nay yêu cầu expected-invocation roster độc lập và dùng
 Cột `Skill trace`, ID và path đã được thêm. Chưa có orchestration row cho corrective implementation/re-review; implementation log chưa ghi SHA `956e742`; raw workflow-orchestration trace còn open. Đây là công việc lifecycle trước final handoff, không phải bằng chứng `Pass` hiện tại.
 
 **Điều kiện đóng bổ sung:** ghi work units/corrective SHA, đóng trace với output refs sau khi workflow thật sự kết thúc, rồi tái sinh/validate derived index.
+
+---
+
+## Final re-review — candidate `f416cc0`
+
+### STE-001 — `Resolved`
+
+Junction/reparse và hardlink/multi-link write targets đều bị từ chối trước write; open-handle link count là lớp kiểm tra thứ hai. Fixture độc lập xác nhận `event` exit `2` và hardlink target ngoài repo giữ nguyên bytes.
+
+### STE-002 — `Unresolved / Major`
+
+Validator và event schema nay loại `seq: true` và `seq: 1.0`. Phần schema parity còn sai:
+
+- manifest schema nhận `ftp://example.com/x` như relative ref dù validator cấm scheme;
+- manifest schema nhận `..\outside.md` vì traversal lookahead chỉ hiểu `/`;
+- URL có credentials/query vẫn lọt qua nhánh relative-ref của `anyOf`;
+- event schema chỉ kiểm ref là non-empty string nên nhận traversal, absolute path và URL bị cấm;
+- slug `../run` khớp schema pattern nhưng bị `validate_slug` từ chối.
+
+Các kết quả trên được tái hiện bằng chính `schema_accepts` helper của candidate: schema `true`, validator `false`. Do schema là shape máy đọc được công bố cho consumer, chênh lệch ở path/credentials không chỉ là semantic bổ sung vô hại.
+
+**Điều kiện đóng:** phân biệt URL và repo-relative ref bằng schema không chồng lấp; chuẩn hóa hoặc cấm backslash/traversal/drive/UNC; cấm credentials/query/fragment; áp cùng ref definition cho event schema; cấm `..` slug segments. Test một matrix adversarial hai chiều schema ↔ validator.
+
+### STE-003 — `Resolved`
+
+Aggregate tiếp tục loại toàn bộ dimension từ trace invalid; marker privacy fixture đạt.
+
+### STE-004 — `Unresolved / Major`
+
+16 tests cải thiện coverage thực, nhưng `test_committed_schemas_accept_generated_data_and_reject_type_tampering` chỉ là smoke test generated data/type và bỏ qua adversarial ref/slug parity. `test_concurrent_writers_are_serialized_without_event_loss` chỉ chạy threads trong một process nên `_THREAD_LOCKS` che race file lock giữa processes. Vì `STE-002` và `STE-005` còn lỗi trực tiếp, claim `6/6` chưa đủ căn cứ.
+
+**Điều kiện đóng:** thêm schema parity matrix và subprocess writer fixture trên Windows; report đúng kết quả của các phép này.
+
+### STE-005 — `Unresolved / Major`
+
+Stale malformed lock recovery đã đạt. Cross-process contention chưa an toàn trên Windows: waiter mở lock trong `read_json`; owner đồng thời chạy `lock.unlink()` và có thể nhận `WinError 32`. Fixture 4 process cho kết quả hai success sạch, một process đã ghi note nhưng exit lỗi, một process còn chờ, lock mồ côi còn giữ PID process lỗi và tổng cộng ba note đã commit.
+
+Hậu quả là CLI outcome không còn tương ứng với event commit: retry sau error có thể tạo duplicate, trong khi writer khác timeout cho tới khi lock đủ stale. Đây là lỗi correctness/lifecycle và trái tài liệu chờ 30 giây cùng claim không mất event.
+
+**Điều kiện đóng:** dùng lock protocol không yêu cầu owner xóa file khi waiter đang giữ read handle, hoặc retry unlink an toàn và chứng minh ownership/token trước xóa. Subprocess test phải assert N command success tương ứng đúng N events, không orphan lock và trace valid qua nhiều vòng.
+
+### STE-006 — `Resolved`
+
+Không có hồi quy trong no-platform-hook/expected-roster limitation.
+
+### STE-007 — `Pending final handoff`
+
+Đây không còn là implementation finding: orchestration đã ghi các corrective work unit và trace refs. Sau một reviewer `Pass`, Điều phối viên vẫn phải ghi SHA candidate/final review, đóng workflow trace, tái sinh index, chạy `validate_index.py`/`sync_index.py --check`, rồi mới trình ratification. Trạng thái open/stale hiện tại được kỳ vọng trong khi review chưa kết thúc.

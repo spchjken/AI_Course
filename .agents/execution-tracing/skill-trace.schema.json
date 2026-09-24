@@ -5,13 +5,13 @@
   "$defs": {
     "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
     "summary": { "type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S" },
-    "slug": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[A-Za-z0-9._/-]+$" },
+    "slug": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" },
     "ref": {
       "type": "string",
       "minLength": 1,
       "anyOf": [
-        { "pattern": "^https?://[^/?#\\s]+[^?#\\s]*$" },
-        { "pattern": "^(?!/|\\\\|[A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\r\\n]+$" }
+        { "pattern": "^https?://[^/?#@\\s]+(?:/[^?#\\s]*)?$" },
+        { "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/|\\\\|[A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\r\\n]+$" }
       ]
     }
   },
