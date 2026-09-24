@@ -17,6 +17,8 @@ Vai trò, đơn vị công việc và tác nhân là ba khái niệm khác nhau.
 - điều kiện đạt và điều kiện dừng;
 - quan hệ phụ thuộc với đơn vị khác.
 
+Nếu đơn vị dùng repository-local skill, task contract phải yêu cầu mở trace theo `AGENTS.md`; bên thực hiện trả `execution_id` và `trace_path` khi bàn giao. Không dùng tên skill trong `Required skills` làm bằng chứng rằng skill thật sự đã chạy.
+
 Nếu chưa lập được hợp đồng trên, Điều phối viên tiếp tục làm rõ phạm vi thay vì sinh tác nhân để khám phá không giới hạn.
 
 ## 2. Vòng điều phối động
@@ -131,6 +133,7 @@ Mỗi lượt chạy tạo một hồ sơ tại:
 | Thời điểm | Bắt đầu và kết thúc |
 | Trạng thái | `queued`, `running`, `completed`, `failed`, `cancelled` hoặc `not-verified` |
 | Đầu ra | Tệp, thông điệp kết quả và phép kiểm tra |
+| Skill trace | `execution_id`/`trace_path` của từng repository-local skill đã dùng, hoặc `Not verified` kèm nguyên nhân |
 | Finding/phân xử | Mã finding, disposition, kết quả phân xử hoặc `none` |
 
 Không ghi thông tin bí mật, toàn bộ chuỗi suy luận nội bộ hoặc nội dung hội thoại dài vào sổ.

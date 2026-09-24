@@ -12,11 +12,13 @@ Tìm vấn đề mà metric hoặc người đọc run riêng lẻ có thể b�
 1. Ghi câu hỏi rà soát, phạm vi thời gian, loại bằng chứng được phép đọc, giới hạn thời gian/token và dữ liệu cấm.
 2. Đọc nguồn chuẩn hiện hành trước khi diễn giải run. Run và decision record là bằng chứng vận hành/lịch sử, không tự là nguồn chuẩn.
 3. Khi phạm vi rộng, lấy mẫu có chủ đích gồm run thành công, run thất bại hoặc `Not verified`, run có sửa/re-review và một mẫu ngẫu nhiên. Nêu rõ phần không được quan sát.
-4. Không suy ra hiệu quả của skill nếu repo không lưu được dấu vết invocation của skill. Ghi đây là giới hạn dữ liệu thay vì dùng workflow run làm đại diện.
+4. Đọc raw trace local trong `.agent-execution-runs/` và aggregate đã xuất trong workflow runs khi chúng thuộc phạm vi được phép. Dùng validator trước khi diễn giải; không suy ra hiệu quả từ trace hỏng, mở quá hạn hoặc thiếu invocation.
+5. Nếu repo không có trace cho một skill/phạm vi, ghi đây là giới hạn dữ liệu thay vì dùng workflow run làm đại diện. Hợp đồng dựa trên tác nhân không chứng minh coverage tuyệt đối khi host chưa có platform hook.
 
 ## Khám phá
 
 - Tìm sai lệch giữa mục tiêu và hành vi, đường vòng, lần sửa lặp lại, finding bị rút hoặc tranh chấp, cổng không tạo giá trị, chi phí điều phối, vùng thiếu bằng chứng và thành công có thể che giấu lỗi thiết kế.
+- Với skill traces, so sánh theo `skill_sha256`, outcome, correction/retry/check counts và trace coverage; không đọc request/event summary nếu aggregate counts-only đã đủ cho câu hỏi.
 - So sánh các run tương phản thay vì chỉ đếm lỗi. Kiểm tra cả bằng chứng ủng hộ lẫn phản bác cho mỗi diễn giải.
 - Phân biệt `Observed`, `Inferred`, `Missing` và `Out of scope`.
 - Giữ nhiều giải thích cạnh tranh khi bằng chứng chưa phân biệt được chúng. Không dùng độ tự tin của mô hình thay cho bằng chứng.

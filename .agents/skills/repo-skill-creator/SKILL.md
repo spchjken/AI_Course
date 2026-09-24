@@ -367,6 +367,7 @@ After creating, renaming, retiring, or materially changing a repository-local sk
 4. Update a workflow document only when that workflow invokes the skill or depends on its behavior. Do not create a second general skill registry under `workflows/`.
 5. For a governance-significant trigger or responsibility change, record the rationale and migration scope according to `.agents/rules/README.md`.
 6. Re-run validation after synchronization and report any check blocked by missing dependencies.
+7. Do not add a private invocation-log format to the skill. Confirm it can use the repository-wide trace contract in `AGENTS.md`; add only domain-specific events when they materially improve later review.
 
 ### Step 7: Iterate
 

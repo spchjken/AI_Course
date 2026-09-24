@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-course/skill-trace.schema.json",
+  "title": "Repository-local skill execution trace manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "execution_id",
+    "execution_kind",
+    "skill",
+    "repository",
+    "started_at",
+    "request_summary",
+    "input_refs",
+    "retention_days",
+    "privacy"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "execution_id": { "type": "string", "pattern": "^[0-9]{8}T[0-9]{6}Z-[a-z0-9-]+-[0-9a-f]{8}$" },
+    "execution_kind": { "const": "skill" },
+    "skill": {
+      "type": "object",
+      "required": ["name", "path", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "required": ["head", "dirty"],
+      "additionalProperties": false,
+      "properties": {
+        "head": { "type": ["string", "null"] },
+        "dirty": { "type": ["boolean", "null"] }
+      }
+    },
+    "started_at": { "type": "string" },
+    "request_summary": { "type": "string", "maxLength": 500 },
+    "input_refs": { "type": "array", "items": { "type": "string" } },
+    "parent_workflow_run": { "type": ["string", "null"] },
+    "agent_id": { "type": ["string", "null"] },
+    "retention_days": { "type": "integer", "minimum": 1 },
+    "privacy": {
+      "type": "object",
+      "required": ["raw_prompt", "chain_of_thought", "secrets", "personal_data"],
+      "additionalProperties": false,
+      "properties": {
+        "raw_prompt": { "const": false },
+        "chain_of_thought": { "const": false },
+        "secrets": { "const": false },
+        "personal_data": { "const": false }
+      }
+    }
+  }
+}

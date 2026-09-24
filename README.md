@@ -15,6 +15,8 @@ Kho dự án này chứa kế hoạch, kiến trúc và nội dung nguồn cho c
 
 Các quy tắc chi tiết vẫn thuộc về [hệ thống quy tắc](.agents/rules/README.md); `AGENTS.md` chỉ là điểm vào ngắn gọn, không phải bản sao của chúng.
 
+Mọi lần dùng repository-local skill phải ghi lifecycle bằng [công cụ skill execution trace](.agents/execution-tracing/README.md). Raw trace được giữ local trong [`.agent-execution-runs/`](.agent-execution-runs/README.md); workflow run và decision record vẫn giữ vai trò riêng.
+
 ## Hệ thống quy tắc
 
 | Quy tắc | Trách nhiệm |

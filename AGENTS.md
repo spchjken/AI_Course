@@ -20,7 +20,7 @@ Trước khi tạo, sửa, kiểm định hoặc sắp xếp nội dung:
 - Phân cấp nguồn chuẩn, ranh giới giữa kiến trúc và bản đồ giáo trình, cùng quy ước ngôn ngữ nằm trong [`curriculum-contract.md`](.agents/rules/curriculum-contract.md).
 - Bản định hướng `README.md` trong `ai-native-builder/goals/gNN-*` là nguồn thiết kế của mục tiêu đó; các tệp còn lại là phần triển khai.
 - `runs/` chỉ ghép và điều phối bài học chuẩn, không sao chép nội dung bài học.
-- `.agents/workflow-runs/` là hồ sơ vận hành; `.agents/decisions/` là hồ sơ quyết định. Cả hai không thay thế nguồn chuẩn.
+- `.agents/workflow-runs/` là hồ sơ vận hành workflow; `.agent-execution-runs/` là raw trace local của skill; `.agents/decisions/` là hồ sơ quyết định. Các hồ sơ này không thay thế nguồn chuẩn.
 - Không tạo nguồn thứ hai cho cùng một quyết định, không bàn giao bằng trí nhớ hội thoại, và tôn trọng quyền sở hữu tệp do quy trình quy định.
 
 ## Chọn đường thực hiện
@@ -30,6 +30,19 @@ Trước khi tạo, sửa, kiểm định hoặc sắp xếp nội dung:
 - Chỉ thực thi quy trình `Active`, trừ khi người dùng đã cho phép chạy thử có kiểm soát quy trình `Proposed`. Không thực thi quy trình `Placeholder`.
 - Vai trò trong quy trình không mặc định tương đương một tác nhân riêng. Khi điều phối, tuân theo [`agent-dispatch-protocol.md`](.agents/workflows/agent-dispatch-protocol.md) và lưu bằng chứng phân công trong lượt chạy.
 - Lời gọi tường minh `$skill-name` là chỉ dẫn ưu tiên để chọn kỹ năng, nhưng không mở rộng phạm vi hay bỏ qua quy tắc. Khi không có lời gọi tường minh, chọn kỹ năng theo `description` nếu phù hợp.
+
+## Ghi vết thực thi kỹ năng
+
+Khi dùng một repository-local skill trong `.agents/skills/`:
+
+1. Trước hành động chuyên môn đầu tiên, chạy `python .agents/execution-tracing/skill_trace.py start` với tên skill, tóm tắt đã khử nhạy cảm và các input ref cần thiết.
+2. Giữ `execution_id` và `trace_path` do lệnh trả về. Trong workflow, đưa chúng vào task contract và `orchestration-log.md`.
+3. Chỉ ghi các event có giá trị kiểm định như `artifact`, `check`, `correction`, `retry` hoặc `limitation`; không biến trace thành nhật ký hội thoại.
+4. Trước bàn giao cuối, chạy `finish` với outcome và output refs. Không để trace mở chỉ vì công việc thất bại; dùng `failed`, `cancelled` hoặc `not-verified` phù hợp.
+5. Không ghi raw prompt, chain-of-thought, secret, dữ liệu cá nhân, environment dump hoặc toàn bộ tool response. Raw trace ở `.agent-execution-runs/` là local/ignored và mặc định giữ 30 ngày.
+6. Nếu recorder không khả dụng hoặc không ghi được, không tạo bằng chứng giả. Ghi `Skill trace: Not verified` trong bàn giao; workflow phải phản ánh giới hạn này trong hồ sơ lượt chạy.
+
+Lệnh, schema, validator và cách xuất aggregate counts-only nằm trong [`.agents/execution-tracing/README.md`](.agents/execution-tracing/README.md). Đây là hợp đồng do tác nhân thực thi, không phải platform hook; audit phải coi invocation không có trace là khoảng trống bằng chứng.
 
 ## Bất biến khi làm việc
 

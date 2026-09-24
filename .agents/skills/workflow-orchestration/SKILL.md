@@ -13,6 +13,7 @@ description: Run repository workflows with dynamic work-unit dispatch, scoped su
 2. Xác nhận quy trình là `Active`, hoặc người dùng đã cho phép chạy thử trạng thái `Proposed`.
 3. Tạo mã lượt và `.agents/workflow-runs/<run-id>/orchestration-log.md`.
 4. Ghi phạm vi, nguồn chuẩn, cổng quyết định của con người, giới hạn đồng thời và điều kiện kết thúc.
+5. Mở skill trace cho chính `$workflow-orchestration`; gắn `parent_workflow_run` bằng run id vừa tạo. Nếu runtime chưa có recorder, ghi `Not verified` thay vì giả lập trace.
 
 ## Phân công theo ngữ cảnh
 
@@ -25,6 +26,7 @@ Không sinh tác nhân chỉ để phản chiếu tên vai trò. Không chạy s
 ## Sinh và quản lý tác nhân
 
 - Gửi cho tác nhân đúng hợp đồng công việc và các tệp nguồn cần đọc; không dựa vào trí nhớ hội thoại.
+- Với mỗi repository-local skill trong task contract, yêu cầu tác nhân mở/đóng trace theo `AGENTS.md` và trả `execution_id`/`trace_path`; ghi kết quả vào sổ điều phối.
 - Dùng lại tác nhân cho chuỗi cần giữ mạch nếu nó không phải Người kiểm định độc lập.
 - Với kiểm định độc lập, sinh một lượt mới không kế thừa hội thoại khi công cụ cho phép và chỉ truyền tệp, tiêu chí cùng phạm vi kiểm tra.
 - Ghi mã tác nhân hoặc tên nhiệm vụ chuẩn, tác nhân cha, hành động phân công, thời điểm, trạng thái và đầu ra từ dữ liệu công cụ.

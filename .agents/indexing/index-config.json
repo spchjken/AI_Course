@@ -23,6 +23,7 @@
     ".context-index-cache.json",
     ".context-index-lock",
     "temp/**",
+    ".agent-execution-runs/**",
     ".agents/workflow-runs/**/index-report*.json",
     ".agents/workflow-runs/**/benchmark-report*.json",
     ".agents/workflow-runs/**/context-package*.json",
@@ -59,6 +60,13 @@
     }
   ],
   "classification_rules": [
+    {
+      "glob": ".agents/execution-tracing/**",
+      "type": "execution-evidence-tool",
+      "authority": "operational",
+      "source_status": "proposed",
+      "default_search": true
+    },
     {
       "glob": ".agents/workflow-runs/**",
       "type": "operational-evidence",

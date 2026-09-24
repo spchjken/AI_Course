@@ -26,6 +26,7 @@ Không công nhận việc tách tác nhân chỉ dựa trên tên vai trò ho�
 |---|---|---|
 | [`agent-dispatch-protocol.md`](agent-dispatch-protocol.md) | `Active` | Quyết định tự làm, tái sử dụng, sinh, trì hoãn, kiểm chứng tác nhân, phản biện và phân xử finding trọng yếu tại thời điểm chạy. |
 | [`workflow-runs/`](../workflow-runs/README.md) | Hồ sơ vận hành | Lưu sổ đăng ký và bằng chứng thực thi; không phải nguồn chuẩn hay hồ sơ quyết định. |
+| [`execution-tracing/`](../execution-tracing/README.md) | Công cụ bằng chứng | Ghi lifecycle của repository-local skill vào raw trace local/ignored và xuất aggregate counts-only có chủ đích. |
 | [`$workflow-orchestration`](../skills/workflow-orchestration/SKILL.md) | Có thể gọi | Áp dụng giao thức phân công khi thực thi một quy trình nhiều vai trò. |
 
 Phép thử ngày 2026-09-05 xác nhận rằng tiện ích Codex khi đó thực sự sinh được tác nhân con và trả tên nhiệm vụ chuẩn làm định danh. Giao thức sau đó đã được người dùng duyệt `Active`; tuy vậy, từng workflow vẫn phải ghi `Independent review not verified` nếu lượt chạy cụ thể không chứng minh được tính độc lập, và phải dùng mục 6.4 của giao thức khi có finding trọng yếu.
