@@ -3,7 +3,8 @@
 - **Baseline:** no recorder, runtime root, schema or validator; fixed scenarios supported `0/6`.
 - **Candidate:** repository-native recorder and contract.
 - **Primary metric:** `6/6` fixed scenarios; all completed fixture traces valid.
-- **Result before independent review:** `Pass` for the primary metric; governance and final index checks remain separate gates.
+- **First independent review:** `Fail`; the earlier self-check overclaimed coverage. Findings `STE-001`–`STE-007` were accepted.
+- **Corrected candidate:** `6/6` fixed scenarios pass across 13 direct tests; independent re-review remains required.
 
 ## Fixed scenarios
 
@@ -12,11 +13,11 @@
 | Start known skill; record hash and HEAD | `test_full_lifecycle_and_version_hash` | `Pass` |
 | Append bounded event types | `test_event_types_and_second_terminal_are_rejected` | `Pass` |
 | Terminal outcomes; reject second terminal | `test_all_terminal_outcomes_validate` plus duplicate-terminal assertion | `Pass` |
-| Same-second unique executions | `test_same_second_ids_are_unique` | `Pass` |
-| Reject unknown skill, unsafe paths, oversized/sensitive summaries and trace-root escape | `test_invalid_skill_refs_summary_and_escape_are_rejected` | `Pass` |
-| Validate traces and emit counts-only aggregate without summaries | `test_aggregate_contains_counts_not_content` | `Pass` |
+| Same-second unique executions, including concurrent processes | `test_same_second_ids_are_unique`; `test_concurrent_process_ids_are_unique` | `Pass` |
+| Reject unknown skill, unsafe/absolute/UNC paths, junctions, oversized/sensitive summaries and trace-root escape | `test_invalid_skill_refs_summary_and_escape_are_rejected`; both Windows junction tests | `Pass` |
+| Validate exact schema/lifecycle and emit counts-only aggregate without summaries, refs or invalid dimensions | aggregate, tamper and invalid-dimension tests | `Pass` |
 
-An additional tamper test confirms unexpected fields such as `raw_prompt` invalidate a trace and malformed trace directories are not silently skipped.
+Additional tests cover append-prefix integrity, active/stale lock behavior, exact nested keys/types, duplicate starts, timestamp mismatch, malformed directories and invalid-trace privacy.
 
 ## Four required layers
 
@@ -37,7 +38,7 @@ An additional tamper test confirms unexpected fields such as `raw_prompt` invali
 
 ```text
 python -m unittest discover -s .agents/execution-tracing/tests -v
-Result: 7/7 Pass
+Result: 13/13 Pass
 
 python -X utf8 <skill-validator> <each affected skill>
 Result: 3/3 Pass

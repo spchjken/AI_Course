@@ -8,6 +8,7 @@ import re
 import secrets
 import subprocess
 import sys
+import time
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -52,9 +53,41 @@ def repository_root(override: str | None = None) -> Path:
 
 def trace_root(root: Path) -> Path:
     candidate = root / ".agent-execution-runs"
-    if candidate.is_symlink():
-        raise TraceError("trace root must not be a symlink")
-    return candidate.resolve()
+    if candidate.exists():
+        reject_link_or_reparse(candidate, "trace root")
+        if not candidate.is_dir() or candidate.resolve() != root.resolve() / candidate.name:
+            raise TraceError("trace root must be a real directory inside the repository")
+    return candidate
+
+
+def reject_link_or_reparse(path: Path, label: str) -> None:
+    try:
+        junction = bool(getattr(path, "is_junction", lambda: False)())
+        attributes = getattr(path.stat(follow_symlinks=False), "st_file_attributes", 0)
+    except OSError as exc:
+        raise TraceError(f"cannot inspect {label}: {path}") from exc
+    if path.is_symlink() or junction or attributes & 0x400:
+        raise TraceError(f"{label} must not be a symlink, junction, or reparse point")
+
+
+def safe_existing_path(runtime: Path, path: Path, label: str) -> Path:
+    runtime_resolved = runtime.resolve()
+    try:
+        path.relative_to(runtime)
+    except ValueError as exc:
+        raise TraceError(f"{label} escapes trace root") from exc
+    current = runtime
+    reject_link_or_reparse(current, "trace root")
+    for part in path.relative_to(runtime).parts:
+        current = current / part
+        if current.exists() or current.is_symlink():
+            reject_link_or_reparse(current, label)
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(runtime_resolved)
+    except ValueError as exc:
+        raise TraceError(f"{label} escapes trace root") from exc
+    return resolved
 
 
 def ensure_within(parent: Path, candidate: Path) -> Path:
@@ -127,6 +160,10 @@ def git_state(root: Path) -> tuple[str | None, bool | None]:
 
 
 def atomic_json_write(path: Path, payload: dict) -> None:
+    runtime = path.parents[1]
+    safe_existing_path(runtime, path.parent, "trace directory")
+    if path.exists() or path.is_symlink():
+        reject_link_or_reparse(path, "trace file")
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{secrets.token_hex(4)}.tmp")
     with temporary.open("x", encoding="utf-8", newline="\n") as handle:
@@ -151,13 +188,16 @@ def read_json(path: Path) -> dict:
 def trace_dir_from_arg(root: Path, value: str) -> Path:
     raw = Path(value)
     candidate = raw if raw.is_absolute() else root / raw
-    resolved = ensure_within(trace_root(root), candidate)
+    runtime = trace_root(root)
+    resolved = safe_existing_path(runtime, candidate, "trace directory")
     if not resolved.is_dir():
         raise TraceError(f"trace directory does not exist: {value}")
     return resolved
 
 
 def read_events(path: Path) -> list[dict]:
+    runtime = path.parents[1]
+    safe_existing_path(runtime, path, "events file")
     events: list[dict] = []
     try:
         with path.open("r", encoding="utf-8") as handle:
@@ -174,14 +214,14 @@ def read_events(path: Path) -> list[dict]:
 
 
 def append_event(directory: Path, event: dict) -> None:
+    runtime = directory.parent
+    safe_existing_path(runtime, directory, "trace directory")
     lock = directory / ".append.lock"
-    try:
-        descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except FileExistsError as exc:
-        raise TraceError("trace is currently locked by another writer") from exc
-    os.close(descriptor)
+    acquire_lock(lock)
     try:
         events_path = directory / "events.jsonl"
+        if events_path.exists() or events_path.is_symlink():
+            reject_link_or_reparse(events_path, "events file")
         events = read_events(events_path) if events_path.exists() else []
         if events and events[-1].get("event") == "finished":
             raise TraceError("trace already has a terminal event")
@@ -196,6 +236,40 @@ def append_event(directory: Path, event: dict) -> None:
             lock.unlink()
         except FileNotFoundError:
             pass
+
+
+def process_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+
+
+def acquire_lock(lock: Path, stale_seconds: int = 300) -> None:
+    for attempt in range(2):
+        try:
+            descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                json.dump({"pid": os.getpid(), "created": time.time()}, handle)
+            return
+        except FileExistsError as exc:
+            reject_link_or_reparse(lock, "append lock")
+            try:
+                metadata = read_json(lock)
+                stale = time.time() - float(metadata.get("created", 0)) > stale_seconds
+                owner_dead = not process_alive(int(metadata.get("pid", -1)))
+            except (TraceError, TypeError, ValueError):
+                stale = False
+                owner_dead = False
+            if attempt == 0 and stale and owner_dead:
+                lock.unlink()
+                continue
+            raise TraceError("trace is currently locked by another writer") from exc
 
 
 def create_trace(args: argparse.Namespace) -> dict:
@@ -213,10 +287,15 @@ def create_trace(args: argparse.Namespace) -> dict:
     agent_id = validate_slug(args.agent_id, "agent id")
     now = utc_now()
     base_id = f"{now.strftime('%Y%m%dT%H%M%SZ')}-{args.skill}-{secrets.token_hex(4)}"
-    directory = trace_root(root) / base_id
-    directory.mkdir(parents=True, exist_ok=False)
-    head, dirty = git_state(root)
-    manifest = {
+    runtime = trace_root(root)
+    runtime.mkdir(parents=True, exist_ok=True)
+    reject_link_or_reparse(runtime, "trace root")
+    directory = runtime / base_id
+    directory.mkdir(exist_ok=False)
+    try:
+        safe_existing_path(runtime, directory, "trace directory")
+        head, dirty = git_state(root)
+        manifest = {
         "schema_version": SCHEMA_VERSION,
         "execution_id": base_id,
         "execution_kind": "skill",
@@ -238,12 +317,19 @@ def create_trace(args: argparse.Namespace) -> dict:
             "secrets": False,
             "personal_data": False,
         },
-    }
-    atomic_json_write(directory / "manifest.json", manifest)
-    append_event(
-        directory,
-        {"event": "started", "at": manifest["started_at"], "summary": "Skill execution started", "refs": []},
-    )
+        }
+        atomic_json_write(directory / "manifest.json", manifest)
+        append_event(
+            directory,
+            {"event": "started", "at": manifest["started_at"], "summary": "Skill execution started", "refs": []},
+        )
+    except Exception:
+        if directory.exists() and directory.parent == runtime and directory.name == base_id:
+            for child in directory.iterdir():
+                if child.is_file() and not child.is_symlink():
+                    child.unlink()
+            directory.rmdir()
+        raise
     return {"execution_id": base_id, "trace_path": directory.relative_to(root).as_posix()}
 
 
@@ -284,6 +370,9 @@ def validate_trace(directory: Path, root: Path, max_open_hours: int) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
     try:
+        runtime = trace_root(root)
+        safe_existing_path(runtime, directory, "trace directory")
+        safe_existing_path(runtime, directory / "manifest.json", "manifest file")
         manifest = read_json(directory / "manifest.json")
         events = read_events(directory / "events.jsonl")
     except TraceError as exc:
@@ -314,31 +403,51 @@ def validate_trace(directory: Path, root: Path, max_open_hours: int) -> dict:
         errors.append("execution_id does not match trace directory")
     if manifest.get("execution_kind") != "skill":
         errors.append("execution_kind must be skill")
-    try:
-        normalize_summary(str(manifest.get("request_summary", "")), "request summary")
-    except TraceError as exc:
-        errors.append(str(exc))
+    summary_value = manifest.get("request_summary")
+    if not isinstance(summary_value, str):
+        errors.append("request summary must be a string")
+    else:
+        try:
+            normalize_summary(summary_value, "request summary")
+        except TraceError as exc:
+            errors.append(str(exc))
     input_refs = manifest.get("input_refs")
     if not isinstance(input_refs, list):
         errors.append("input_refs must be a list")
     else:
         for value in input_refs:
+            if not isinstance(value, str):
+                errors.append("input ref must be a string")
+            else:
+                try:
+                    normalize_ref(value, root)
+                except TraceError as exc:
+                    errors.append(str(exc))
+
+    for field in ("parent_workflow_run", "agent_id"):
+        value = manifest.get(field)
+        if value is not None and not isinstance(value, str):
+            errors.append(f"{field} must be a string or null")
+        elif isinstance(value, str):
             try:
-                normalize_ref(str(value), root)
+                validate_slug(value, field)
             except TraceError as exc:
                 errors.append(str(exc))
 
     skill = manifest.get("skill")
-    if not isinstance(skill, dict) or not {"name", "path", "sha256"}.issubset(skill):
-        errors.append("skill object is incomplete")
-    elif not re.fullmatch(r"[0-9a-f]{64}", str(skill.get("sha256", ""))):
+    if not isinstance(skill, dict) or set(skill) != {"name", "path", "sha256"}:
+        errors.append("skill object must contain only name, path and sha256")
+    elif not isinstance(skill.get("sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", skill["sha256"]):
         errors.append("skill sha256 is invalid")
     else:
-        skill_name = str(skill.get("name", ""))
-        skill_path = str(skill.get("path", ""))
-        if not SKILL_NAME_RE.fullmatch(skill_name):
+        skill_name = skill.get("name")
+        skill_path = skill.get("path")
+        if not isinstance(skill_name, str) or not SKILL_NAME_RE.fullmatch(skill_name):
             errors.append("skill name is invalid")
-        try:
+        elif not isinstance(skill_path, str):
+            errors.append("skill path must be a string")
+        else:
+          try:
             normalized_skill_path = normalize_ref(skill_path, root)
             expected_path = f".agents/skills/{skill_name}/SKILL.md"
             if normalized_skill_path != expected_path:
@@ -348,13 +457,15 @@ def validate_trace(directory: Path, root: Path, max_open_hours: int) -> dict:
                 warnings.append("skill source is no longer present")
             elif hashlib.sha256(current_path.read_bytes()).hexdigest() != skill.get("sha256"):
                 warnings.append("skill source has changed since this execution")
-        except TraceError as exc:
+          except TraceError as exc:
             errors.append(str(exc))
 
     repository = manifest.get("repository")
     if not isinstance(repository, dict) or set(repository) != {"head", "dirty"}:
         errors.append("repository object must contain only head and dirty")
-    elif repository.get("head") is not None and not re.fullmatch(r"[0-9a-f]{40}", str(repository.get("head"))):
+    elif repository.get("head") is not None and (
+        not isinstance(repository.get("head"), str) or not re.fullmatch(r"[0-9a-f]{40}", repository["head"])
+    ):
         errors.append("repository head must be a full SHA or null")
     elif repository.get("dirty") is not None and not isinstance(repository.get("dirty"), bool):
         errors.append("repository dirty must be boolean or null")
@@ -368,13 +479,20 @@ def validate_trace(directory: Path, root: Path, max_open_hours: int) -> dict:
     if not isinstance(retention_days, int) or isinstance(retention_days, bool) or retention_days < 1:
         errors.append("retention_days must be a positive integer")
 
-    if not events or events[0].get("event") != "started":
+    started_count = sum(event.get("event") == "started" for event in events)
+    if not events or events[0].get("event") != "started" or started_count != 1:
         errors.append("first event must be started")
     terminal_count = sum(event.get("event") == "finished" for event in events)
     if terminal_count > 1:
         errors.append("trace contains multiple terminal events")
     if terminal_count == 1 and events[-1].get("event") != "finished":
         errors.append("terminal event must be last")
+    previous_time = None
+    manifest_started = None
+    try:
+        manifest_started = parse_timestamp(manifest.get("started_at"), "started_at")
+    except TraceError as exc:
+        errors.append(str(exc))
     for index, event in enumerate(events, 1):
         allowed_event = {"seq", "event", "at", "summary", "refs"}
         if event.get("event") == "finished":
@@ -385,8 +503,15 @@ def validate_trace(directory: Path, root: Path, max_open_hours: int) -> dict:
         if event.get("seq") != index:
             errors.append(f"event sequence mismatch at {index}")
         try:
-            parse_timestamp(event.get("at"), f"event {index}")
-            normalize_summary(str(event.get("summary", "")), f"event {index} summary")
+            event_time = parse_timestamp(event.get("at"), f"event {index}")
+            if previous_time is not None and event_time < previous_time:
+                errors.append(f"event timestamp moves backwards at {index}")
+            previous_time = event_time
+            if index == 1 and manifest_started is not None and event_time != manifest_started:
+                errors.append("started event timestamp must match manifest")
+            if not isinstance(event.get("summary"), str):
+                raise TraceError(f"event {index} summary must be a string")
+            normalize_summary(event["summary"], f"event {index} summary")
         except TraceError as exc:
             errors.append(str(exc))
         refs = event.get("refs")
@@ -394,21 +519,20 @@ def validate_trace(directory: Path, root: Path, max_open_hours: int) -> dict:
             errors.append(f"event {index} refs must be a list")
         else:
             for value in refs:
-                try:
-                    normalize_ref(str(value), root)
-                except TraceError as exc:
-                    errors.append(str(exc))
+                if not isinstance(value, str):
+                    errors.append(f"event {index} ref must be a string")
+                else:
+                    try:
+                        normalize_ref(value, root)
+                    except TraceError as exc:
+                        errors.append(str(exc))
         event_type = event.get("event")
-        if event_type not in EVENT_TYPES | {"started", "finished"}:
+        if not isinstance(event_type, str) or event_type not in EVENT_TYPES | {"started", "finished"}:
             errors.append(f"unknown event type at {index}")
         if event_type == "finished" and event.get("outcome") not in OUTCOMES:
             errors.append("terminal outcome is invalid")
 
-    try:
-        started = parse_timestamp(manifest.get("started_at"), "started_at")
-    except TraceError as exc:
-        errors.append(str(exc))
-        started = utc_now()
+    started = manifest_started or utc_now()
     is_open = terminal_count == 0
     open_age = utc_now() - started
     expired_open = is_open and open_age > timedelta(hours=max_open_hours)
@@ -464,6 +588,8 @@ def aggregate_command(args: argparse.Namespace) -> dict:
     by_skill_version: dict[str, dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
     event_totals: Counter = Counter()
     for item in results:
+        if not item["valid"]:
+            continue
         skill = item.get("skill") or "unknown"
         by_skill[skill][item["status"]] += 1
         if item.get("outcome"):

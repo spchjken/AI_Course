@@ -34,6 +34,8 @@ python .agents/execution-tracing/skill_trace.py aggregate `
 
 `validate --all` cho phép trace đang mở dưới 24 giờ nhưng trả lỗi với trace hỏng hoặc mở quá hạn. `aggregate` không xuất summary hay refs; output chỉ gồm counts theo skill, outcome, correction/retry và số trace invalid/open/expired.
 
+Recorder từ chối symlink, junction và reparse point ở runtime root, trace directory và file được ghi. Append dùng lock có PID và thời điểm; lock quá 5 phút chỉ được thu hồi khi tiến trình sở hữu không còn tồn tại. Trace invalid chỉ đóng góp vào `invalid_count`, không cung cấp dimension cho aggregate.
+
 ## Giới hạn dữ liệu
 
 - Summary tối đa 500 ký tự, được chuẩn hóa thành một dòng và bị chặn khi giống secret phổ biến.

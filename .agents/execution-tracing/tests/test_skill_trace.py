@@ -3,8 +3,11 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
+import subprocess
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
@@ -78,8 +81,10 @@ class SkillTraceTests(unittest.TestCase):
             root=str(self.root), trace=started["trace_path"], outcome="failed", summary="Failed safely", output_ref=[]
         )
         skill_trace.finish_trace(finish)
+        before = (self.root / started["trace_path"] / "events.jsonl").read_bytes()
         with self.assertRaises(skill_trace.TraceError):
             skill_trace.finish_trace(finish)
+        self.assertEqual(before, (self.root / started["trace_path"] / "events.jsonl").read_bytes())
 
     def test_same_second_ids_are_unique(self) -> None:
         fixed = skill_trace.datetime(2026, 9, 24, 12, 0, tzinfo=skill_trace.timezone.utc)
@@ -88,6 +93,15 @@ class SkillTraceTests(unittest.TestCase):
             second = skill_trace.create_trace(self.start_args())
         self.assertNotEqual(first["execution_id"], second["execution_id"])
 
+    def test_concurrent_process_ids_are_unique(self) -> None:
+        command = [str(SCRIPT), "--root", str(self.root), "start", "--skill", "demo-skill", "--summary", "Concurrent"]
+        def invoke(_):
+            result = subprocess.run([os.sys.executable, "-X", "utf8", *command], capture_output=True, text=True, check=True)
+            return json.loads(result.stdout)["execution_id"]
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            ids = list(pool.map(invoke, range(12)))
+        self.assertEqual(len(ids), len(set(ids)))
+
     def test_invalid_skill_refs_summary_and_escape_are_rejected(self) -> None:
         with self.assertRaises(skill_trace.TraceError):
             skill_trace.create_trace(self.start_args(skill="missing-skill"))
@@ -95,6 +109,9 @@ class SkillTraceTests(unittest.TestCase):
             skill_trace.create_trace(self.start_args(summary="x" * 501))
         with self.assertRaises(skill_trace.TraceError):
             skill_trace.create_trace(self.start_args(input_ref=["../outside.md"]))
+        for ref in (r"C:\outside.md", r"\\server\share\outside.md"):
+            with self.assertRaises(skill_trace.TraceError):
+                skill_trace.create_trace(self.start_args(input_ref=[ref]))
         with self.assertRaises(skill_trace.TraceError):
             skill_trace.create_trace(self.start_args(summary="token sk-abcdefghijklmnopqrstuvwxyz123456"))
         outside = self.root.parent / "outside"
@@ -139,6 +156,76 @@ class SkillTraceTests(unittest.TestCase):
         self.assertEqual(result["skills"]["demo-skill"]["outcome:completed"], 1)
         self.assertEqual(len(result["skill_versions"]["demo-skill"]), 1)
         self.assertEqual(result["event_totals"]["correction"], 1)
+        self.assertNotIn("output.md", serialized)
+
+    def test_schema_lifecycle_tampering_is_rejected(self) -> None:
+        mutations = (
+            lambda m, e: m.update(request_summary=7),
+            lambda m, e: m.update(input_refs=[7]),
+            lambda m, e: m["skill"].update(extra="x"),
+            lambda m, e: m.update(parent_workflow_run={"bad": True}),
+            lambda m, e: e.append(dict(e[0], seq=2)),
+            lambda m, e: e[0].update(at="2020-01-01T00:00:00Z"),
+        )
+        for mutation in mutations:
+            started = skill_trace.create_trace(self.start_args())
+            directory = self.root / started["trace_path"]
+            manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+            events = skill_trace.read_events(directory / "events.jsonl")
+            mutation(manifest, events)
+            (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            (directory / "events.jsonl").write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+            self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"])
+
+    def test_invalid_trace_dimensions_never_reach_aggregate(self) -> None:
+        marker = "PRIVATE_MARKER_DO_NOT_EXPORT"
+        started = skill_trace.create_trace(self.start_args())
+        manifest_path = self.root / started["trace_path"] / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["skill"]["name"] = marker
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        result = skill_trace.aggregate_command(argparse.Namespace(root=str(self.root), output="aggregate.json", max_open_hours=24, force=False))
+        self.assertNotIn(marker, json.dumps(result))
+        self.assertEqual(result["invalid_count"], 1)
+
+    def test_active_lock_blocks_and_stale_dead_lock_recovers(self) -> None:
+        started = skill_trace.create_trace(self.start_args())
+        directory = self.root / started["trace_path"]
+        lock = directory / ".append.lock"
+        lock.write_text(json.dumps({"pid": os.getpid(), "created": 0}), encoding="utf-8")
+        with self.assertRaises(skill_trace.TraceError):
+            skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="blocked", ref=[]))
+        lock.write_text(json.dumps({"pid": 2147483647, "created": 0}), encoding="utf-8")
+        skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="recovered", ref=[]))
+        self.assertFalse(lock.exists())
+
+    @unittest.skipUnless(os.name == "nt", "Windows junction behavior")
+    def test_junction_trace_root_is_rejected_without_outside_write(self) -> None:
+        runtime = self.root / ".agent-execution-runs"
+        runtime.rmdir()
+        outside = Path(tempfile.mkdtemp())
+        try:
+            subprocess.run(["cmd", "/c", "mklink", "/J", str(runtime), str(outside)], check=True, capture_output=True)
+            with self.assertRaises(skill_trace.TraceError):
+                skill_trace.create_trace(self.start_args())
+            self.assertEqual(list(outside.iterdir()), [])
+        finally:
+            if runtime.exists():
+                subprocess.run(["cmd", "/c", "rmdir", str(runtime)], check=True)
+            outside.rmdir()
+
+    @unittest.skipUnless(os.name == "nt", "Windows nested junction behavior")
+    def test_nested_junction_trace_directory_is_rejected(self) -> None:
+        outside = Path(tempfile.mkdtemp())
+        linked = self.root / ".agent-execution-runs" / "linked"
+        try:
+            subprocess.run(["cmd", "/c", "mklink", "/J", str(linked), str(outside)], check=True, capture_output=True)
+            with self.assertRaises(skill_trace.TraceError):
+                skill_trace.trace_dir_from_arg(self.root, str(linked))
+        finally:
+            if linked.exists():
+                subprocess.run(["cmd", "/c", "rmdir", str(linked)], check=True)
+            outside.rmdir()
 
     def test_validator_rejects_unexpected_sensitive_field_and_malformed_directory(self) -> None:
         started = skill_trace.create_trace(self.start_args())
