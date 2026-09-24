@@ -1,7 +1,7 @@
 # Ghi vết thực thi kỹ năng cục bộ
 
 - Ngày: 2026-09-24
-- Trạng thái: Đề xuất — implementation hoàn tất; chờ quyết định `Ratify | Revise | Reject | Defer`
+- Trạng thái: Ratified — Chủ sở hữu đã chấp thuận tích hợp và publish ngày 2026-09-24
 - Bên quyết định: Chủ sở hữu kho
 - Phạm vi ảnh hưởng: hợp đồng tác nhân, skill cục bộ, giao thức điều phối, công cụ/hồ sơ vận hành và derived index
 - Thay thế hồ sơ: Bổ sung phần còn chưa quyết định trong `2026-09-24-separate-harness-discovery-from-validation.md`
@@ -34,7 +34,7 @@ Không có trace root hay recorder hiện hành; workflow logs chỉ chứng min
 - Cho phép xuất aggregate counts/outcomes có chủ đích; raw runtime tree không được commit hoặc đưa vào derived index.
 - Giữ cổng `Ratify` trước khi tích hợp vào `main`.
 
-Ứng viên cuối là `6ce41a4`. Các phép tự kiểm tra đạt, nhưng kiểm định độc lập của chính SHA này là `Not verified` vì Chủ sở hữu đã yêu cầu dừng vòng review tiếp theo. Đây là giới hạn bằng chứng công khai của quyết định, không được diễn giải thành `Pass` ngầm.
+Ứng viên cuối là `6ce41a4`. Các phép tự kiểm tra đạt, nhưng kiểm định độc lập của chính SHA này là `Not verified` vì Chủ sở hữu đã yêu cầu dừng vòng review tiếp theo. Chủ sở hữu đã ratify với giới hạn bằng chứng này được ghi rõ; nó không được diễn giải thành `Pass` ngầm.
 
 ## Hệ quả và phạm vi chuyển đổi
 

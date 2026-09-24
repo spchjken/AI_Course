@@ -2,8 +2,8 @@
 
 - **Workflow:** `validate-agent-harness-improvement`
 - **Mode:** `Improvement trial`
-- **Status:** `Awaiting owner decision`
-- **Decision:** `Approved trial` — repository owner explicitly requested implementation on 2026-09-24; ratification remains pending.
+- **Status:** `Closed`
+- **Decision:** `Ratified by repository owner` — owner directed the status transition and publication on 2026-09-24.
 - **Baseline:** `a65e86caff89feb4e7c065fa5a22443a83d4d23e`
 - **Trial branch:** `codex/20260924-skill-execution-traces`
 - **Problem:** repository-local skill invocations have no durable, machine-readable execution evidence outside workflow-specific logs.
@@ -16,5 +16,5 @@ This run owns the bounded implementation, validation, independent review and own
 - Candidate: `6ce41a4`
 - Self-check: 17/17 execution-tracing tests, 8/8 indexing tests, 3/3 affected skill validators; two real traces valid and closed.
 - Review history: repeated independent reviews found and drove closure of junction, hardlink, lifecycle, aggregate privacy, process-locking, schema-parity and migration defects.
-- Final review state: the last completed verdict applied to predecessor `053df34`; owner explicitly stopped further review loops while review of `6ce41a4` was running. Therefore independent acceptance of `6ce41a4` is `Not verified`, not silently inferred.
-- Decision gate: `Ratify | Revise | Reject | Defer`.
+- Final review state: the last completed verdict applied to predecessor `053df34`; owner explicitly stopped further review loops while review of `6ce41a4` was running. Independent acceptance of `6ce41a4` remains `Not verified`; the owner ratified with that stated evidence limitation.
+- Integration: publish the trial branch; preserve the branch and rollback plan.

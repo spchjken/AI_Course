@@ -209,9 +209,9 @@
     },
     {
       "authority": "governance",
-      "content_hash": "87c00022b4ac8b0caf1277a5c1e27c210f0af169cd8cab306ddc51801b1a74f9",
+      "content_hash": "aaf6bef8a15ce69003e1f81a0efc5f7ea69f4ead8b30598ef54599b0040dd267",
       "default_search": true,
-      "entry_hash": "c0603ef584d270f2fd82ca57e40d0bbb7e5e50fb61c8a099990a1e1569e5f41c",
+      "entry_hash": "e0e60ddcae318c64484131a08245be45cb329b10fb85838eddba994ec2cac648",
       "index_state": "current",
       "links": [],
       "path": ".agents/decisions/2026-09-24-skill-execution-traces.md",
@@ -1550,9 +1550,9 @@
     },
     {
       "authority": "operational",
-      "content_hash": "c8271aa24e0311eabd69c37f4d0e4831611be0477e9c509ec52c82394c39c158",
+      "content_hash": "07776ab23ced1a0960fe6686791f38eb874da9f3508aaea12d81f2dcc3feef1f",
       "default_search": false,
-      "entry_hash": "718713b5863b141696c930ca30657da9d048902df995d33dcebafcfc9d4e9dc1",
+      "entry_hash": "f7519c1c1a465e45340c0ea05645a3d5c5b590524218232581150cfe40498781",
       "index_state": "current",
       "links": [],
       "path": ".agents/workflow-runs/20260924-1931-validate-harness-skill-traces/README.md",
@@ -1658,9 +1658,9 @@
     },
     {
       "authority": "operational",
-      "content_hash": "52071901310a9801397a75a366d67e22677e884e199eed5d457270ca779b2805",
+      "content_hash": "9a95df37d0ed1f5cbdfac75e9d52fa659d4670e879ac275a24341a0a1a3e956c",
       "default_search": false,
-      "entry_hash": "dd9ee0f2bb69747227f6e3d5b7f52c83f866700151f9f764ad1f6a3297b2f160",
+      "entry_hash": "d6f7be1f918131cf4aa692f44026fa7805b649401ba544c4bc80760f3abd8226",
       "index_state": "current",
       "links": [],
       "path": ".agents/workflow-runs/20260924-1931-validate-harness-skill-traces/orchestration-log.md",
@@ -2520,5 +2520,5 @@
   ],
   "generator_version": "0.1",
   "schema_version": "1.0",
-  "tree_fingerprint": "3d9389d42b9b94235ea4ee7c495eb58e11f8d0396890d7d010dcd87763b3157c"
+  "tree_fingerprint": "514a99b7adccd9ff5aed663d7eae710a9d2411c07117b65de027056e5457cfe0"
 }
