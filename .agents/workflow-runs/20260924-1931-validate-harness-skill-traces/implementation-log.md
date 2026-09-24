@@ -8,7 +8,8 @@
 - **Corrective commit after first review:** `956e742a81a6d3e0ee63c481f75545809ea1aa3b`
 - **Second corrective commit:** `f416cc0`
 - **Third corrective commit:** `20ab1c9`
-- **Fourth corrective commit:** pending
+- **Fourth corrective commit:** `053df34`
+- **Fifth corrective commit:** pending
 
 ## Implemented
 
@@ -28,6 +29,7 @@
 - Re-review reopened hardlink safety, boolean sequence typing, schema parity, concurrent append and malformed-lock recovery. The second correction adds handle-level hardlink rejection, exact integer checks, a machine-readable event schema, schema parity fixtures, 30-second bounded contention retry with in-process serialization, and stale malformed-lock recovery.
 - The next re-review found schema ref/slug drift and a Windows sharing race caused by contenders reading an active lock file. The third correction uses an atomic lock-directory, delays metadata reads until stale, adds true multi-process append verification, and applies the same safe ref grammar to manifest and event schemas.
 - The following re-review confirmed 192/192 process writes but found validator-accepted noncanonical refs/timestamps and a legacy lock-file migration case. The fourth correction makes validator and schemas share canonical ref/timestamp acceptance, exercises rejection in both directions, and reclaims stale legacy lock files.
+- The targeted re-review extended parity cases to URL backslashes/case, padded slugs and invalid calendar values. The fifth correction rejects every case across recorder, validator and schemas and turns malformed bracketed URL parsing into controlled failure.
 
 ## Self-check boundaries
 

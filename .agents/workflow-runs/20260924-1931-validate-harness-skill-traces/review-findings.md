@@ -188,3 +188,61 @@ Không có hồi quy no-platform-hook limitation, expected roster hay trạng th
 ### STE-007 — `Pending final handoff`
 
 Không phải implementation finding. Candidate SHA, final reviewer row, workflow trace closure và index regeneration phải thực hiện sau khi không còn Blocker/Major. Index stale và trace open trong lượt review này là trạng thái vòng đời dự kiến, không được dùng để che hay khuếch đại verdict code.
+
+---
+
+## Targeted final re-review — candidate `053df34`
+
+### STE-001 — `Resolved`
+
+Không có hồi quy hardlink, junction, reparse hay containment. Suite 17/17 đạt trên Windows.
+
+### STE-002 — `Unresolved / Major`
+
+Candidate đã đóng các counterexample gần nhất: HTTP/local whitespace, local và traversal backslash, FTP/custom schemes, credentials/query/fragment, parent ref, slug traversal, `+00:00`, fractional/offset/lowercase-z timestamps đều có kết quả schema/validator giống nhau. Một completed trace canonical do recorder sinh đạt manifest schema, mọi event schema và lifecycle validator.
+
+Ma trận hai chiều mở rộng vẫn tìm thấy chênh lệch trực tiếp:
+
+- `https://example.com\\evil`: URL branch của cả hai schemas cho phép backslash trong host character class, trong khi `normalize_ref` cấm mọi backslash. Kết quả schema `true`, validator manifest/event `false`.
+- `HTTP://example.com/a` và `HtTpS://example.com/a`: `urlsplit` chuẩn hóa scheme để validator chấp nhận, nhưng schema regex chỉ nhận lowercase. Một completed trace do chính CLI tạo với hai refs này trả validator `valid: true`; manifest và event tương ứng trả schema `false`.
+- `parent_workflow_run` có leading/trailing whitespace được `validate_slug` strip rồi chấp nhận, nhưng schema từ chối. Validator không kiểm stored value là canonical.
+- Timestamp có hình thức đúng pattern nhưng ngày/giờ bất khả thi (`2026-13-25T...`, `2026-02-30T...`, giờ `25:62:63`) được `schema_accepts` helper dùng trong suite nhận vì helper bỏ qua `format`, trong khi validator từ chối. Với JSON Schema 2020-12, `format` cũng không mặc định là assertion bắt buộc cho mọi consumer, nên pattern hiện tại chưa tự bảo đảm calendar validity.
+
+Do đã có artifact được CLI tạo mà validator gọi valid nhưng committed schema từ chối, đây vẫn là bất đồng machine contract thực, không chỉ semantic lifecycle bổ sung.
+
+**Điều kiện đóng:** dùng chung case/backslash/canonical grammar cho URLs và slugs; dùng schema validation có format assertion hoặc pattern/logic tương đương rồi test cả hai chiều trên artifact hoàn chỉnh.
+
+### STE-003 — `Resolved`
+
+Không có hồi quy privacy. Aggregate tests đạt; raw trace vẫn nested-ignore và excluded khỏi derived index. Secret scan chỉ khớp token giả trong negative fixture.
+
+### STE-004 — `Unresolved / Major`
+
+Test hiện tại đã tốt hơn vì ghi bad ref vào manifest/event rồi assert cả schema lẫn validator từ chối. Tuy nhiên tập test chưa có URL backslash, uppercase/mixed-case HTTP scheme, slug whitespace hoặc calendar-invalid canonical-looking timestamps. Chính các khoảng trống đó tạo counterexample ở `STE-002`, trong đó có completed artifact do CLI sinh.
+
+Vì primary metric yêu cầu mọi completed fixture trace đạt schema/lifecycle validation, `6/6` và `100%` chưa được chứng minh. Đây vẫn là evidence/coverage overclaim, không phải chỉ yêu cầu tăng test tùy chọn.
+
+**Điều kiện đóng:** thêm các counterexample vào matrix hai chiều và assert mọi CLI-accepted input tạo artifact được cả schemas lẫn validator nhận; chỉ sau đó mới giữ comparison `0/6 → 6/6`.
+
+### STE-005 — `Resolved`
+
+Migration lock-file cũ đạt đầy đủ trong fixture độc lập:
+
+- stale legacy file với dead-valid, empty hoặc malformed metadata đều được xóa và thay bằng lock-directory; append giữ prefix, thêm đúng một event, xóa lock và trace valid;
+- legacy file cũ nhưng PID còn sống không bị thu hồi;
+- hardlinked legacy lock bị từ chối, không xóa/mutate outside target;
+- 8 vòng × 24 Windows subprocess cùng append tiếp tục đạt 192/192 command success, 192 summary duy nhất, sequence liên tục, không lock mồ côi và 8/8 trace valid.
+
+Không còn Blocker/Major ở lifecycle/concurrency hiện hành hay migration case được yêu cầu.
+
+### Minor adjunct — malformed URL error path
+
+`normalize_ref("http://[bad", root)` và biến thể IPv6 bracket dở dang làm `urlsplit` ném raw `ValueError`; CLI chỉ bắt `TraceError`, nên người dùng nhận traceback thay vì JSON error có kiểm soát. Không có trace/write được tạo trước lỗi ở `start`, do đó xếp `Minor`.
+
+### STE-006 — `Resolved`
+
+No-platform-hook và expected-roster limitation không hồi quy.
+
+### STE-007 — `Pending final handoff`
+
+Không phải implementation finding. Chỉ sau khi mọi Blocker/Major đóng mới ghi final candidate/reviewer SHA, đóng workflow trace, tái sinh index và chạy hai index gates. Trạng thái stale/open hiện tại không ảnh hưởng phân loại code ở trên.

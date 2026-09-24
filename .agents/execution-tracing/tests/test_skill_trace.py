@@ -50,6 +50,18 @@ def schema_accepts(value, schema, root):
             return False
         if "pattern" in schema and re.search(schema["pattern"], value) is None:
             return False
+        if schema.get("format") == "date-time":
+            try:
+                skill_trace.parse_timestamp(value, "schema fixture")
+            except skill_trace.TraceError:
+                return False
+        if schema.get("format") == "uri":
+            try:
+                parsed = skill_trace.urlsplit(value)
+                if not parsed.scheme or not parsed.netloc or not parsed.hostname:
+                    return False
+            except ValueError:
+                return False
     if isinstance(value, int) and not isinstance(value, bool) and value < schema.get("minimum", value):
         return False
     if isinstance(value, dict):
@@ -242,7 +254,7 @@ class SkillTraceTests(unittest.TestCase):
             self.assertFalse(schema_accepts(tampered, event_schema, event_schema))
         tampered_manifest = dict(manifest, request_summary=7)
         self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
-        for bad_ref in ("ftp://example.com/file", r"..\outside.md", "https://user:pass@example.com/file", "https://example.com/file?q=1", "https://example.com/a b", "folder name/file.md"):
+        for bad_ref in ("ftp://example.com/file", r"..\outside.md", r"https://example.com\evil", "HTTP://example.com/file", "HtTpS://example.com/file", "https://user:pass@example.com/file", "https://example.com/file?q=1", "https://example.com/a b", "https://[invalid", "folder name/file.md"):
             tampered_manifest = dict(manifest, input_refs=[bad_ref])
             self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema), bad_ref)
             (directory / "manifest.json").write_text(json.dumps(tampered_manifest), encoding="utf-8")
@@ -253,12 +265,13 @@ class SkillTraceTests(unittest.TestCase):
             (directory / "events.jsonl").write_text(json.dumps(tampered_event) + "\n", encoding="utf-8")
             self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"], bad_ref)
             (directory / "events.jsonl").write_text(json.dumps(events[0]) + "\n", encoding="utf-8")
-        tampered_manifest = dict(manifest, parent_workflow_run="../outside")
-        self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
-        (directory / "manifest.json").write_text(json.dumps(tampered_manifest), encoding="utf-8")
-        self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"])
+        for bad_slug in ("../outside", " padded"):
+            tampered_manifest = dict(manifest, parent_workflow_run=bad_slug)
+            self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
+            (directory / "manifest.json").write_text(json.dumps(tampered_manifest), encoding="utf-8")
+            self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"])
         (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-        for bad_timestamp in (manifest["started_at"].replace("Z", "+00:00"),):
+        for bad_timestamp in (manifest["started_at"].replace("Z", "+00:00"), "2026-99-99T25:61:61Z"):
             tampered_manifest = dict(manifest, started_at=bad_timestamp)
             self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
             (directory / "manifest.json").write_text(json.dumps(tampered_manifest), encoding="utf-8")

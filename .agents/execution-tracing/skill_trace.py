@@ -124,7 +124,13 @@ def normalize_ref(value: str, root: Path) -> str:
         raise TraceError("reference must not contain leading, trailing or embedded whitespace")
     if "\\" in raw:
         raise TraceError("reference must use forward slashes")
-    parsed = urlsplit(raw)
+    if "://" in raw and not raw.startswith(("http://", "https://")):
+        raise TraceError("external reference scheme must be lowercase http or https")
+    try:
+        parsed = urlsplit(raw)
+        _ = parsed.hostname
+    except ValueError as exc:
+        raise TraceError("reference is not a valid URL or repository path") from exc
     if parsed.scheme:
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise TraceError("external reference must be an HTTP(S) URL")
@@ -145,7 +151,7 @@ def validate_slug(value: str | None, field: str) -> str | None:
     if value is None:
         return None
     normalized = value.strip()
-    if not normalized or len(normalized) > 160 or not re.fullmatch(r"[A-Za-z0-9._/-]+", normalized):
+    if normalized != value or not normalized or len(normalized) > 160 or not re.fullmatch(r"[A-Za-z0-9._/-]+", normalized):
         raise TraceError(f"invalid {field}")
     if ".." in PurePosixPath(normalized.replace("\\", "/")).parts:
         raise TraceError(f"invalid {field}")

@@ -273,3 +273,80 @@ Root `.gitignore` vẫn là thay đổi có sẵn của người dùng và khôn
 2. Chỉ giữ claim `6/6` sau khi fixture trên chứng minh mọi completed trace được validator nhận cũng được schemas nhận.
 3. Xử lý hoặc tài liệu hóa migration cho stale lock-file từ candidate trước; đây là `Minor`, không phải finding chặn độc lập.
 4. Sau reviewer `Pass`, mới thực hiện các bước `STE-007`: ghi SHA/review row, đóng workflow trace, tái sinh và kiểm index, rồi trình ratification.
+
+---
+
+## Targeted final re-review candidate `053df34`
+
+- **Ngày:** 2026-09-25
+- **Candidate:** `053df34` (`Align skill trace schemas and validator`)
+- **Phán quyết:** `Fail`
+- **Finding chặn:** `STE-002` và `STE-004` vẫn là `Major`. `STE-005`, gồm migration lock-file cũ và stress 192 process writes, đã đóng. `STE-007` tiếp tục là final-handoff lifecycle, không phải implementation defect.
+
+### Kết quả theo finding
+
+| Finding | Re-review `053df34` | Bằng chứng |
+|---|---|---|
+| `STE-001` | `Resolved` | 17/17 suite tiếp tục đạt junction, hardlink và path containment. Không có hồi quy write-outside-root. |
+| `STE-002` | `Unresolved — Major` | Whitespace HTTP/local, local/traversal backslash, FTP/custom scheme, credentials/query/fragment, parent refs, slug traversal và `+00:00`/fraction/offset timestamps nay đồng thuận reject; generated canonical trace đạt cả schemas và validator. Nhưng URL `https://example.com\\evil` được cả schemas nhận trong khi validator từ chối; ngược lại `HTTP://...`/`HtTpS://...` được CLI lưu và validator nhận nhưng schemas từ chối. Slug có leading/trailing whitespace cũng validator=true/schema=false. Candidate helper còn nhận calendar-invalid timestamps theo pattern trong khi validator từ chối. Hai chiều vẫn chưa tương đương. |
+| `STE-003` | `Resolved` | Privacy/invalid aggregate/raw-ignore/index-exclusion regressions đều đạt; chỉ token giả của negative test khớp secret scan. |
+| `STE-004` | `Unresolved — Major` | Test mới kiểm nhiều bad refs ở cả schema và validator nhưng không gồm URL-backslash, mixed/uppercase HTTP scheme, slug whitespace hay invalid-calendar timestamp. Một completed trace do chính CLI tạo với uppercase/mixed-case HTTP refs là validator-valid nhưng schema-invalid, nên claim `6/6` và `100% completed fixture trace validity` vẫn vượt coverage thực. |
+| `STE-005` | `Resolved` | Legacy lock-files stale với valid-dead, empty và malformed metadata đều được thu hồi, append giữ prefix và trace valid. Legacy lock có PID sống không bị chiếm; hardlinked lock bị từ chối và outside bytes không đổi. Lặp lại 8 × 24 Windows subprocess: 192/192 success, 192 unique notes, sequence liên tục, 0 orphan locks, 8/8 traces valid. |
+| `STE-006` | `Resolved` | No-platform-hook/expected-roster limitation không hồi quy. |
+| `STE-007` | `Pending final handoff — không phải lỗi implementation` | Candidate/reviewer SHA, workflow trace closure và derived-index regeneration phải diễn ra sau khi không còn Blocker/Major. Bảy stale index sources và trace workflow đang mở là trạng thái lifecycle dự kiến trong review. |
+
+### Ma trận và regression độc lập
+
+```text
+python -X utf8 -m unittest discover -s .agents/execution-tracing/tests -v
+=> 17/17 pass
+
+python -X utf8 <quick_validate.py> <each affected skill>
+=> 3/3 pass
+
+python -X utf8 -m unittest discover -s .agents/indexing/tests -v
+=> 8/8 pass
+
+python -X utf8 .agents/execution-tracing/skill_trace.py validate --all
+=> 2/2 valid; workflow trace open dưới 24 giờ; exit 0
+
+Generated canonical completed trace
+=> manifest schema=true; every event schema=true; validator=true
+
+Two-way ref matrix
+=> aligned: HTTP/local whitespace, local/traversal backslash, FTP/custom scheme,
+   credentials, query, fragment, parent traversal and ordinary valid refs
+=> mismatch: https://example.com\\evil schema=true/validator=false
+=> mismatch: HTTP://example.com/a and HtTpS://example.com/a schema=false/validator=true
+=> completed CLI-generated mixed-case scheme trace: validator=true, schema=false
+
+Slug matrix
+=> traversal variants schema=false/validator=false
+=> leading/trailing whitespace schema=false/validator=true
+
+Timestamp matrix
+=> generated canonical=true/true; +00:00, fractional, offset and lowercase-z=false/false
+=> invalid month/day/time: candidate schema helper=true, validator=false
+
+Legacy lock-file matrix
+=> stale dead-valid, empty and malformed recovered; active-old retained;
+   hardlink rejected with outside bytes unchanged
+
+8 rounds × 24 Windows subprocess writers
+=> 192/192 success; exactly-once; contiguous seq; no orphan locks; all traces valid
+
+Malformed IPv6 URL refs
+=> uncaught ValueError rather than controlled TraceError (Minor robustness adjunct)
+
+validate_index.py / sync_index.py --check
+=> 7 stale sources / exit 1; expected final-handoff state
+```
+
+Root `.gitignore` vẫn là thay đổi có sẵn của người dùng; reviewer không sửa implementation.
+
+### Điều kiện đóng
+
+1. Đồng bộ URL grammar: schemas phải từ chối backslash giống validator; recorder/validator và schemas phải thống nhất case policy của `http`/`https`.
+2. Validator phải từ chối slug không canonical hoặc schema phải biểu diễn đúng tập validator nhận; timestamp conformance test phải thực sự kiểm `format`/calendar validity thay vì chỉ pattern.
+3. Bổ sung các counterexample trên vào two-way test và chỉ giữ claim `6/6` sau khi completed CLI-generated artifacts luôn đạt cả schema lẫn validator.
+4. Chuyển malformed URL parsing thành lỗi có kiểm soát. Đây là `Minor`; nó không thay đổi verdict vốn đã bị hai finding Major chặn.
