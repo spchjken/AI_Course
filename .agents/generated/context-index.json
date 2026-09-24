@@ -197,6 +197,18 @@
     },
     {
       "authority": "governance",
+      "content_hash": "aaeba366d12f0d199342455b3a4ff4284eb6420a87932239a336858dc3201908",
+      "default_search": true,
+      "entry_hash": "9cc93290ee6ce843960bfb00163fd522a5a4ca59f44ae38cd692f931a5cbb5f4",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/decisions/2026-09-24-separate-harness-discovery-from-validation.md",
+      "source_status": "unknown",
+      "title": "Tách khám phá vấn đề khỏi kiểm chứng cải tiến harness",
+      "type": "governance-decision"
+    },
+    {
+      "authority": "governance",
       "content_hash": "ead98a886d894a73722f5a787388108f039a892fc9ea5a1da7d4672f2bc1bdc8",
       "default_search": true,
       "entry_hash": "f5de265c8de8f94db252aaf6de484dc4962ae651571363cfac9dcda0fa779d97",
@@ -245,9 +257,9 @@
     },
     {
       "authority": "operational",
-      "content_hash": "15d99ccd00b20f57903457ab830cd77b78e08df17e5579063ba76f178ed790b4",
+      "content_hash": "bd775a5539c05894f5de1087bd3cd3462f47667859d8675a1740fb518dd17e9a",
       "default_search": true,
-      "entry_hash": "7165300cdfd6fbe5dc00f5b10b43dea9762dd5d24f069f2de7879054248b340d",
+      "entry_hash": "153a369c2bfa19ddf47ea5f5e27042fda6565beac717c939b4911bc267a066f3",
       "index_state": "current",
       "links": [],
       "path": ".agents/indexing/index-config.json",
@@ -491,6 +503,30 @@
       "index_state": "current",
       "links": [],
       "path": ".agents/skills/curriculum-reference-research/agents/openai.yaml",
+      "source_status": "unknown",
+      "title": "openai",
+      "type": "supporting"
+    },
+    {
+      "authority": "canonical",
+      "content_hash": "bb5e2de968cddf06db0c20dcead1a90583966c244c9dc8bb16a11a49bd48dfe5",
+      "default_search": true,
+      "entry_hash": "ae50e95898248c6ab1e9d5c51a4ede6145b1ead6a1f50ac635c61bff1e945214",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/skills/harness-improvement-discovery/SKILL.md",
+      "source_status": "active",
+      "title": "Khám phá cải tiến harness",
+      "type": "skill-instruction"
+    },
+    {
+      "authority": "supporting",
+      "content_hash": "99cca8c849b0eddd74c0d1d6525cc11ad52996394951b09b3401a09f0d949583",
+      "default_search": true,
+      "entry_hash": "713d8bf7c0f0d252fa9d9c476090aab840665712ea859f399875f8a93e321ef2",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/skills/harness-improvement-discovery/agents/openai.yaml",
       "source_status": "unknown",
       "title": "openai",
       "type": "supporting"
@@ -1356,9 +1392,9 @@
     },
     {
       "authority": "operational",
-      "content_hash": "40e38622c61274d1c550e895938eb1f278efec24a179381e9e2f6580b50fac47",
+      "content_hash": "d304df03ea2f1964dff465e30a30dff90227bfc3cc6c64832966ebd8e7c244cb",
       "default_search": false,
-      "entry_hash": "c4d0e410d8c5878ec292c7febb3a425e0874141927b69c7b968be2dc31435935",
+      "entry_hash": "47286a9414e726a48de8ff1699b5f881e40017e08500d580d8edb464d511695e",
       "index_state": "current",
       "links": [],
       "path": ".agents/workflow-runs/20260916-1627-complete-goal-lessons-template/review-findings.md",
@@ -1380,6 +1416,68 @@
     },
     {
       "authority": "operational",
+      "content_hash": "cb247ca857bcce43a77e3c6e7d6b960fe73f7944fab2d910934d7f24835f1d3d",
+      "default_search": false,
+      "entry_hash": "fd32319a5ee9827c45a0e31de9e18a011a92b974bd951d09340acd0026636413",
+      "index_state": "current",
+      "links": [
+        ".agents/decisions/2026-09-24-separate-harness-discovery-from-validation.md"
+      ],
+      "path": ".agents/workflow-runs/20260924-1914-harness-discovery-validation-split/README.md",
+      "source_status": "unknown",
+      "title": "Harness discovery/validation split — implementation record",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "4c5d75f19aca4299c0968df71b4c69f1ca4d97c982baca5e9b01c3a616ec2936",
+      "default_search": false,
+      "entry_hash": "27871bfaa99597b16a90218aa0fa4e83763d253c8b506e34303f4f71b95ee4b5",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260924-1914-harness-discovery-validation-split/finding-disposition.md",
+      "source_status": "unknown",
+      "title": "Finding disposition",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "ddcc64ffbd046b3c8f97e897cc94b7f63b3e607349ae48ec6388543e838d4883",
+      "default_search": false,
+      "entry_hash": "f74ef533e258c7bc0874ab57fa9fd9dd9e49c9ab732468eefeb8642784d752c6",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260924-1914-harness-discovery-validation-split/governance-review.md",
+      "source_status": "unknown",
+      "title": "Kiểm định quản trị độc lập",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "8227d1230d6f551f20b8c1ad7690398d0ed588488b321e39cb3c3be9e9556be4",
+      "default_search": false,
+      "entry_hash": "79f443541bfa54e2313f6b7f054eaaf568c8636fde1fce7ba155325e10fd4f27",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260924-1914-harness-discovery-validation-split/orchestration-log.md",
+      "source_status": "unknown",
+      "title": "Orchestration log",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
+      "content_hash": "8d510384234c5736850ee18661eec3d033327d19d1993be8fd4d752bd24cba79",
+      "default_search": false,
+      "entry_hash": "a333c0d9f3e093d2a3f4b92331820d7f40d5dbdeef9dd013a17f752736180634",
+      "index_state": "current",
+      "links": [],
+      "path": ".agents/workflow-runs/20260924-1914-harness-discovery-validation-split/review-findings.md",
+      "source_status": "unknown",
+      "title": "Findings của kiểm định quản trị",
+      "type": "operational-evidence"
+    },
+    {
+      "authority": "operational",
       "content_hash": "6ca01b0545885f116d3ab1cf742d335b1a50d0dbff2c46b329f19baa40223bd8",
       "default_search": false,
       "entry_hash": "0aa05349c981c27b0711b169c0065845c10776f758141848e388c1f4de5670b0",
@@ -1392,9 +1490,9 @@
     },
     {
       "authority": "canonical",
-      "content_hash": "82d13c1db1d4dce058aa711e4fbf729e0ef1353518b1971f2132d7e502490104",
+      "content_hash": "085527cf92c053fb9c8a0f5946a3da47fad37f45997ac85a5a0e1c4a5c64ee63",
       "default_search": true,
-      "entry_hash": "cdf5847d9bab44aef72dee07d95a9c37f2e6fafec7d8f9ef1c634ba343c6bd12",
+      "entry_hash": "f1a308ff2d0bd52968c466f70bfacb4d00ab384dba57c7f4359bbcbaf02a0c90",
       "index_state": "current",
       "links": [
         ".agents/skills/workflow-orchestration/SKILL.md",
@@ -1403,9 +1501,9 @@
         ".agents/workflows/change-curriculum-architecture.md",
         ".agents/workflows/complete-goal-lessons.md",
         ".agents/workflows/compose-learning-run.md",
-        ".agents/workflows/optimize-agent-harness-system.md",
         ".agents/workflows/pilot-and-validate.md",
-        ".agents/workflows/refresh-volatile-content.md"
+        ".agents/workflows/refresh-volatile-content.md",
+        ".agents/workflows/validate-agent-harness-improvement.md"
       ],
       "path": ".agents/workflows/README.md",
       "source_status": "unknown",
@@ -1480,47 +1578,32 @@
     },
     {
       "authority": "supporting",
-      "content_hash": "55d34069a4aabd14453cef137667328831aefa104e3ff6c4ea1a56b9447adf51",
+      "content_hash": "ddf236bd260adfc32e5a67fd4c1ac95e5caeaa40b5190abb00f459ccce4a2bb6",
       "default_search": true,
-      "entry_hash": "51b780248633dab953a9ff75f1bdbf33ef0ebf56bd53e3e1f25dfcab9b69627c",
+      "entry_hash": "2b396b299376b9bd728f6d38167d30217894bb1a30d850cf39063b60b9cfa195",
       "index_state": "current",
       "links": [
-        ".agents/workflows/optimize-agent-harness-system.md"
+        ".agents/workflows/validate-agent-harness-improvement.md"
       ],
       "path": ".agents/workflows/design-notes/optimize-agent-harness-first-pilot.md",
       "source_status": "unknown",
-      "title": "Kế hoạch pilot đầu tiên cho optimize-agent-harness-system",
+      "title": "Kế hoạch pilot đầu tiên của workflow kiểm chứng cải tiến harness",
       "type": "design-note"
     },
     {
       "authority": "supporting",
-      "content_hash": "1d840da35889c7df8f235fea859938d3865fee18c3da6bf68706a312834bf291",
+      "content_hash": "cea78323a60f055e33b834dad3dcebfde70b12df4235ee500a446772039c7edb",
       "default_search": true,
-      "entry_hash": "74660866b8856d3903dc5de704fb0de2c3f7363a57c5d8c91f84ca5e70ec9e6e",
+      "entry_hash": "ba50cca105d191da6d95719f815376290b8171aa85e0796e90b22393996e7a7e",
       "index_state": "current",
       "links": [
         ".agents/workflows/design-notes/optimize-agent-harness-first-pilot.md",
-        ".agents/workflows/optimize-agent-harness-system.md"
+        ".agents/workflows/validate-agent-harness-improvement.md"
       ],
-      "path": ".agents/workflows/design-notes/optimize-agent-harness-system.md",
+      "path": ".agents/workflows/design-notes/validate-agent-harness-improvement.md",
       "source_status": "unknown",
-      "title": "Kế hoạch khung hoàn thiện optimize-agent-harness-system",
+      "title": "Kế hoạch khung lịch sử của validate-agent-harness-improvement",
       "type": "design-note"
-    },
-    {
-      "authority": "canonical",
-      "content_hash": "6a0089d96b2018cd4a6943ac74c25eba4fb52af245ddb77627c68fc0b3d34b91",
-      "default_search": true,
-      "entry_hash": "646a0f469f3320de80f99fff47d9041087c8a8a73c7e01d40b70be626800c9e2",
-      "index_state": "current",
-      "links": [
-        ".agents/workflows/agent-dispatch-protocol.md",
-        ".agents/workflows/design-notes/optimize-agent-harness-system.md"
-      ],
-      "path": ".agents/workflows/optimize-agent-harness-system.md",
-      "source_status": "unknown",
-      "title": "Quy trình tối ưu hệ thống harness tác nhân",
-      "type": "workflow-protocol"
     },
     {
       "authority": "canonical",
@@ -1565,6 +1648,21 @@
     },
     {
       "authority": "canonical",
+      "content_hash": "ea54325c1273dbeab9ab00e08296d9c34c8b03ce03ff8c5a8155f0dd99170920",
+      "default_search": true,
+      "entry_hash": "89f13731ca82c7f18b13acf7b8a1ce0fd065cdd756ce6280996e75c8e1bf52fe",
+      "index_state": "current",
+      "links": [
+        ".agents/workflows/agent-dispatch-protocol.md",
+        ".agents/workflows/design-notes/validate-agent-harness-improvement.md"
+      ],
+      "path": ".agents/workflows/validate-agent-harness-improvement.md",
+      "source_status": "unknown",
+      "title": "Quy trình kiểm chứng cải tiến harness tác nhân",
+      "type": "workflow-protocol"
+    },
+    {
+      "authority": "canonical",
       "content_hash": "8016974fb794c916ed5a925981861b812b1ae36b94a948e769df3ea699be9ac6",
       "default_search": true,
       "entry_hash": "981c5aebaf75fe1da264cbcd19d3a8a280e26abc97e83f96c0a84937eafc7e37",
@@ -1598,9 +1696,9 @@
     },
     {
       "authority": "canonical",
-      "content_hash": "a15b7674aadf28db9c21c2817a6511935f80cd61fb7ae97c7d5d46cfba096779",
+      "content_hash": "4786ad7676834db7a279eb73323f10068219feb12b5e7d3ee1d810a47597655c",
       "default_search": true,
-      "entry_hash": "469cb2f22ced13b5ec2a1003a06c28c92498fc513873cd6438880b6d3a63d4a5",
+      "entry_hash": "a6defb9c14084fbf88dfa8edea14d738993db411227020b2845fae347ae66539",
       "index_state": "current",
       "links": [
         ".agents/rules/README.md",
@@ -1614,9 +1712,9 @@
         ".agents/workflows/change-curriculum-architecture.md",
         ".agents/workflows/complete-goal-lessons.md",
         ".agents/workflows/compose-learning-run.md",
-        ".agents/workflows/optimize-agent-harness-system.md",
         ".agents/workflows/pilot-and-validate.md",
         ".agents/workflows/refresh-volatile-content.md",
+        ".agents/workflows/validate-agent-harness-improvement.md",
         "AGENTS.md",
         "AI-native-builder-curriculum-plan.md",
         "ai-native-builder/README.md",
@@ -2166,5 +2264,5 @@
   ],
   "generator_version": "0.1",
   "schema_version": "1.0",
-  "tree_fingerprint": "f8ac8804dac0d59f285bcf8a00a0444ec978af412633b3445959fddf3a0532c7"
+  "tree_fingerprint": "5c85c324b7974710aeeab0089b5faa12f68a4d5f85b032e809a088bc4e645e6d"
 }

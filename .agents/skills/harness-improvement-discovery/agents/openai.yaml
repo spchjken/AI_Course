@@ -1,0 +1,4 @@
+interface:
+  display_name: "Harness Improvement Discovery"
+  short_description: "Discover evidence-backed harness issues"
+  default_prompt: "Use $harness-improvement-discovery to inspect these run records and produce workflow-ready improvement candidates."

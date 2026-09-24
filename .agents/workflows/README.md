@@ -83,8 +83,10 @@ Volatile claim reaches its recheck trigger
 ```
 
 ```text
-Harness operating evidence
-    → optimize-agent-harness-system (Proposed)
+Owner-requested audit or harness operating evidence
+    → $harness-improvement-discovery
+    → Zero or more workflow-ready candidates
+    → validate-agent-harness-improvement (Proposed)
     → Run a human-approved controlled trial; do not auto-apply
 ```
 
@@ -99,7 +101,7 @@ Thay đổi cục bộ trong bài học không cần đi qua `change-curriculum-
 | [`pilot-and-validate.md`](pilot-and-validate.md) | `Proposed` | Dạy thử bài học hoặc lộ trình đã đạt tối thiểu `Pilot-ready` và phân tích bằng chứng thực tế. | Hồ sơ dạy thử ẩn danh, phân tích nguyên nhân, quyết định của chủ sở hữu, trạng thái chất lượng có phạm vi và bàn giao sửa đổi. |
 | [`change-curriculum-architecture.md`](change-curriculum-architecture.md) | `Proposed` *(đã chạy thử; chờ quyết định)* | Thay đổi mục tiêu, quan hệ phụ thuộc, cam kết hoặc ranh giới cấp giáo trình. | Quyết định được ghi, nguồn chuẩn được đồng bộ, ảnh hưởng được kiểm định và chuyển tới quy trình sở hữu. |
 | [`refresh-volatile-content.md`](refresh-volatile-content.md) | `Proposed` | Rà soát khẳng định phụ thuộc công cụ, API, mô hình, giá, quyền hạn hoặc chính sách. | Hàng đợi dẫn xuất, sổ bằng chứng cập nhật, bản đồ ảnh hưởng, cờ chặn an toàn và bàn giao tới quy trình sở hữu. |
-| [`optimize-agent-harness-system.md`](optimize-agent-harness-system.md) | `Proposed` | Điều tra và chạy thử có kiểm soát cải tiến hệ thống hướng dẫn, điều phối và kiểm chứng tác nhân dựa trên bằng chứng vận hành. | Thay đổi được kiểm định quản trị, có rollback và chỉ áp dụng sau `Ratify` của Chủ sở hữu. |
+| [`validate-agent-harness-improvement.md`](validate-agent-harness-improvement.md) | `Proposed` | Kiểm chứng và chạy thử có kiểm soát một candidate cải tiến đã có vấn đề kiểm tra được; không dùng để audit mở hoặc tự phát hiện vấn đề. | Thay đổi được kiểm định quản trị, có rollback và chỉ áp dụng sau `Ratify` của Chủ sở hữu. |
 
 ## Ranh giới trách nhiệm
 
@@ -123,9 +125,11 @@ Thay đổi cục bộ trong bài học không cần đi qua `change-curriculum-
 
 `refresh-volatile-content` xác minh khẳng định và đánh giá ảnh hưởng. Quy trình này chuyển sửa đổi tới đúng tệp hoặc quy trình chịu trách nhiệm; không tự thay công cụ, mở rộng bài học hoặc đổi mục tiêu chỉ vì có lựa chọn mới hơn.
 
-### Tối ưu hệ thống harness tác nhân
+### Khám phá và kiểm chứng cải tiến harness tác nhân
 
-`optimize-agent-harness-system` là workflow `Proposed` cho việc cải tiến `AGENTS.md`, rules, skills, workflows, giao thức phân công và tài sản vận hành. Nó chỉ chạy thử khi Chủ sở hữu cho phép, không tự thay nguồn chuẩn và không sở hữu thay đổi nội dung hoặc kiến trúc giáo trình.
+`$harness-improvement-discovery` là skill đọc và phân tích bằng chứng để tìm candidate khi vấn đề hoặc giải pháp chưa rõ. Nó có thể trả về không hoặc nhiều candidate, không sửa harness và không tự mở trial.
+
+`validate-agent-harness-improvement` là workflow `Proposed` nhận đúng một candidate `Ready` hoặc giả thuyết cụ thể do Chủ sở hữu chỉ định để kiểm chứng cải tiến `AGENTS.md`, rules, skills, workflows, giao thức phân công và tài sản vận hành. Nó chỉ chạy thử khi Chủ sở hữu cho phép, không tự thay nguồn chuẩn và không sở hữu thay đổi nội dung hoặc kiến trúc giáo trình.
 
 ## Quy tắc bàn giao chung
 
@@ -147,7 +151,8 @@ Không bàn giao bằng trí nhớ hội thoại. Thông tin cần cho lượt s
 - Chuẩn bị dạy thử hoặc đã dạy thử → `pilot-and-validate`.
 - Thay đổi mục tiêu, quan hệ phụ thuộc hoặc cam kết → `change-curriculum-architecture`.
 - Kiểm tra lại khẳng định về công cụ hoặc API → `refresh-volatile-content`.
-- Cải tiến cách tác nhân được hướng dẫn, điều phối hoặc kiểm chứng → `optimize-agent-harness-system` (`Proposed`; mỗi controlled trial cần Chủ sở hữu cho phép tường minh).
+- Chưa biết vấn đề harness nằm ở đâu hoặc muốn audit run định kỳ/theo yêu cầu → `$harness-improvement-discovery`.
+- Đã có một candidate harness kiểm tra được → `validate-agent-harness-improvement` (`Proposed`; mỗi controlled trial cần Chủ sở hữu cho phép tường minh).
 
 Nếu một tác vụ chạm nhiều quy trình, bắt đầu tại quy trình chịu trách nhiệm cho nguyên nhân gốc rồi bàn giao. Không gộp toàn bộ vòng đời vào một yêu cầu dành cho tác nhân AI nhẹ.
 
@@ -158,6 +163,6 @@ Nếu một tác vụ chạm nhiều quy trình, bắt đầu tại quy trình c
 3. Thiết kế và chạy thử có kiểm soát `pilot-and-validate` trước buổi dạy thử đầu tiên.
 4. Chạy thử có kiểm soát `change-curriculum-architecture` khi xuất hiện thay đổi cấu trúc đầu tiên.
 5. Thiết kế và chạy thử có kiểm soát `refresh-volatile-content` trước khi phát hành hoặc bắt đầu chu kỳ bảo trì.
-6. Chạy thử có kiểm soát `optimize-agent-harness-system` trên một vấn đề harness có baseline và rollback hẹp trước khi cân nhắc `Active`.
+6. Dùng `$harness-improvement-discovery` trên một tập run có mẫu tương phản, rồi chạy thử có kiểm soát `validate-agent-harness-improvement` trên đúng một candidate có baseline và rollback hẹp trước khi cân nhắc `Active`.
 
 Tệp ở trạng thái `Placeholder` chỉ ghi ranh giới và yêu cầu thiết kế. Không tự bổ sung giai đoạn rồi thực thi khi chưa được người dùng duyệt.

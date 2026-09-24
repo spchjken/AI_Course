@@ -41,6 +41,7 @@ Kỹ năng là hướng dẫn thực hiện công việc chuyên biệt trong ph
 | `$learning-path-composition` | Ghép bài học thành chương trình thực hành ngắn hoặc lộ trình 1-1. |
 | `$curriculum-quality-review` | Kiểm định bài học, chuỗi mục tiêu hoặc lộ trình theo tiêu chuẩn chất lượng. |
 | `$pilot-feedback-analysis` | Phân tích đợt dạy thử để đề xuất cải tiến dựa trên bằng chứng. |
+| `$harness-improvement-discovery` | Rà soát mở bằng chứng vận hành để tìm vấn đề harness và tạo candidate tương thích với workflow kiểm chứng; không tự sửa harness. |
 | `$workflow-orchestration` | Chạy quy trình nhiều vai trò, phân công tác nhân động và lưu bằng chứng thực thi. |
 | `$repo-skill-creator` | Tạo hoặc cập nhật kỹ năng cục bộ được ghim phiên bản trong kho dự án. |
 
@@ -55,7 +56,7 @@ Xem nội dung và điều kiện dùng từng kỹ năng trong [`.agents/skills
 | [`pilot-and-validate.md`](.agents/workflows/pilot-and-validate.md) | Dạy thử, phân tích bằng chứng thực tế và xác nhận chất lượng. | `Proposed` |
 | [`change-curriculum-architecture.md`](.agents/workflows/change-curriculum-architecture.md) | Thay đổi mục tiêu, quan hệ phụ thuộc hoặc cam kết cấp giáo trình. | `Proposed` *(đã chạy thử; chờ quyết định)* |
 | [`refresh-volatile-content.md`](.agents/workflows/refresh-volatile-content.md) | Rà soát thông tin phụ thuộc công cụ, API, quyền hạn hoặc chính sách. | `Proposed` |
-| [`optimize-agent-harness-system.md`](.agents/workflows/optimize-agent-harness-system.md) | Điều tra và chạy thử có kiểm soát cải tiến rules, skills, workflows và điều phối tác nhân dựa trên bằng chứng vận hành. | `Proposed` |
+| [`validate-agent-harness-improvement.md`](.agents/workflows/validate-agent-harness-improvement.md) | Kiểm chứng và triển khai có kiểm soát một cải tiến candidate đối với rules, skills, workflows hoặc điều phối tác nhân. | `Proposed` |
 
 Đọc [kiến trúc và ranh giới giữa các quy trình](.agents/workflows/README.md) trước khi thực hiện công việc nhiều giai đoạn hoặc cần bàn giao giữa nhiều vai trò.
 

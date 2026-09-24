@@ -1,7 +1,7 @@
-# Kế hoạch pilot đầu tiên cho `optimize-agent-harness-system`
+# Kế hoạch pilot đầu tiên của workflow kiểm chứng cải tiến harness
 
 - **Trạng thái:** `Draft` — chưa được phê duyệt chạy.
-- **Workflow:** [`../optimize-agent-harness-system.md`](../optimize-agent-harness-system.md).
+- **Workflow hiện hành:** [`../validate-agent-harness-improvement.md`](../validate-agent-harness-improvement.md), mang tên `optimize-agent-harness-system` tại thời điểm pilot.
 - **Mục đích:** Cung cấp contract ứng viên để kiểm tra workflow trên một thay đổi định tuyến hẹp; không cho phép triển khai.
 
 ## Phạm vi ứng viên

@@ -22,6 +22,7 @@
     ".agents/indexing/cache/**",
     ".context-index-cache.json",
     ".context-index-lock",
+    "temp/**",
     ".agents/workflow-runs/**/index-report*.json",
     ".agents/workflow-runs/**/benchmark-report*.json",
     ".agents/workflow-runs/**/context-package*.json",

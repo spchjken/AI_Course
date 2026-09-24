@@ -1,7 +1,8 @@
-# Kế hoạch khung hoàn thiện `optimize-agent-harness-system`
+# Kế hoạch khung lịch sử của `validate-agent-harness-improvement`
 
 - **Loại tài liệu:** Ghi chú thiết kế đã hoàn thành, không phải kế hoạch thực thi.
-- **Workflow liên quan:** [`optimize-agent-harness-system.md`](../optimize-agent-harness-system.md).
+- **Workflow hiện hành:** [`validate-agent-harness-improvement.md`](../validate-agent-harness-improvement.md).
+- **Lưu ý tên:** tài liệu này được viết khi workflow còn mang tên `optimize-agent-harness-system`; quyết định ngày 2026-09-24 đã thu hẹp và đổi tên để phản ánh đúng năng lực kiểm chứng candidate.
 - **Trạng thái:** Đã hoàn thành vai trò; giữ làm bối cảnh lịch sử.
 - **Kết quả:** Đặc tả vận hành đã được chuyển vào workflow `Proposed`; D6 độc lập đã `Pass` và kế hoạch pilot riêng đang ở trạng thái `Draft`.
 - **Không cho phép:** Dùng ghi chú này thay workflow chuẩn, tự chạy trial, giao agent sửa harness hoặc di trú metadata toàn kho.

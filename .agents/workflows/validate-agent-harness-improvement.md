@@ -1,11 +1,11 @@
-# Quy trình tối ưu hệ thống harness tác nhân
+# Quy trình kiểm chứng cải tiến harness tác nhân
 
 - **Trạng thái:** `Proposed` — chỉ được chạy thử có kiểm soát khi Chủ sở hữu kho cho phép cho từng lượt.
-- **Mục tiêu:** Cải thiện độ tin cậy, an toàn, khả năng truy vết, khả năng sử dụng và chi phí/thời gian vận hành của hệ thống hướng dẫn, điều phối và kiểm chứng tác nhân dựa trên bằng chứng vận hành.
-- **Đầu vào tối thiểu:** Một vấn đề kiểm tra được, bằng chứng trực tiếp hoặc yêu cầu khảo sát của Chủ sở hữu, phạm vi harness nghi vấn và người có quyền quyết định.
+- **Mục tiêu:** Kiểm chứng và triển khai có kiểm soát một cải tiến ứng viên đối với độ tin cậy, an toàn, khả năng truy vết, khả năng sử dụng hoặc chi phí/thời gian vận hành của harness tác nhân.
+- **Đầu vào tối thiểu:** Một `candidate issue` kiểm tra được, bằng chứng trực tiếp hoặc giả thuyết cụ thể do Chủ sở hữu chỉ định, phạm vi harness nghi vấn và người có quyền quyết định.
 - **Đầu ra bắt buộc:** Hồ sơ chẩn đoán, baseline, hợp đồng thử, thay đổi cô lập, báo cáo kiểm chứng, kiểm định quản trị độc lập, quyết định cuối và kế hoạch tích hợp/hoàn tác có thể truy vết.
 
-Ghi chú tại [`design-notes/optimize-agent-harness-system.md`](design-notes/optimize-agent-harness-system.md) lưu bối cảnh thiết kế đã hoàn thành; tệp này là nguồn vận hành duy nhất của quy trình.
+Ghi chú tại [`design-notes/validate-agent-harness-improvement.md`](design-notes/validate-agent-harness-improvement.md) lưu bối cảnh thiết kế lịch sử dưới tên cũ; tệp này là nguồn vận hành duy nhất của quy trình.
 
 ## 1. Khi nào cần dùng
 
@@ -17,9 +17,9 @@ Chỉ mở một lượt khi có ít nhất một điều kiện sau:
 2. Một sự cố đơn lẻ mức `High` hoặc `Critical` gây mất an toàn, vượt quyền, mất dữ liệu, sai nguồn chuẩn hoặc làm phán quyết không thể kiểm chứng.
 3. Môi trường, công cụ hoặc cơ chế điều phối thay đổi khiến hướng dẫn hiện tại không còn khả thi.
 4. Một metric xác định trước vượt ngưỡng cảnh báo trong phạm vi có dữ liệu đủ tin cậy.
-5. Chủ sở hữu yêu cầu khảo sát một giả thuyết cải tiến cụ thể.
+5. Chủ sở hữu chỉ định một giả thuyết cải tiến cụ thể có hành vi kỳ vọng và quan sát được.
 
-Một quan sát đơn lẻ dưới mức `High`, sở thích văn phong hoặc ý tưởng dùng công nghệ mới không tự đủ để sửa harness. Chúng có thể được ghi để theo dõi hoặc đóng với `No change`.
+Yêu cầu rà soát chung, một quan sát đơn lẻ dưới mức `High`, sở thích văn phong hoặc ý tưởng dùng công nghệ mới không tự đủ để mở workflow. Dùng `$harness-improvement-discovery` cho khám phá mở; chỉ bàn giao từng candidate `Ready` vào đây. Các quan sát còn lại có thể được ghi để theo dõi hoặc đóng với `No change`.
 
 ### 1.2. Đơn vị thay đổi
 
@@ -52,7 +52,7 @@ Dùng cho độ tin cậy, khả năng sử dụng, chi phí hoặc thời gian.
 ## 3. Sơ đồ tổng thể và trạng thái
 
 ```text
-Evidence or owner request
+Ready candidate or owner-nominated testable hypothesis
   → Intake and trigger gate
   → Reproduce and establish baseline
   → Competing hypotheses and options
@@ -75,16 +75,18 @@ Trạng thái toàn lượt chỉ là `Queued`, `In progress`, `Awaiting decisio
 
 - mệnh đề vấn đề kiểm tra được;
 - hành vi kỳ vọng và hành vi quan sát được;
-- bằng chứng trực tiếp, hoặc nhãn `Owner-requested exploration`;
+- bằng chứng trực tiếp, hoặc nhãn `Owner-nominated hypothesis` cho một giả thuyết cụ thể;
 - phạm vi tệp/thành phần nghi vấn;
 - mức tác động ban đầu và dữ liệu cấm thu;
 - Chủ sở hữu có quyền phê duyệt trial và ratify.
 
-Khảo sát do Chủ sở hữu yêu cầu có thể bắt đầu khi bằng chứng còn ít, nhưng kết quả phải giữ nhãn giả thuyết và không được suy ra tần suất hay tác động chưa đo.
+Giả thuyết cụ thể do Chủ sở hữu chỉ định có thể bắt đầu khi bằng chứng còn ít, nhưng phải có hành vi kỳ vọng/quan sát phân biệt được; kết quả giữ nhãn giả thuyết và không được suy ra tần suất hay tác động chưa đo. Yêu cầu “rà soát các run để tìm cơ hội cải tiến” thuộc `$harness-improvement-discovery`, không phải đầu vào trực tiếp của workflow này.
+
+Một candidate `Ready` do `$harness-improvement-discovery` tạo tương thích trực tiếp với đầu vào trên. `Confidence`, `Counterevidence` và `Competing explanations` được giữ làm bối cảnh chẩn đoán, không thay thế tái hiện, baseline hoặc cổng trial.
 
 ### 4.2. Hồ sơ bắt buộc của lượt chạy
 
-Mỗi lượt dùng `.agents/workflow-runs/<run-id>/` với tên `<YYYYMMDD-HHMM>-optimize-harness-<scope>`:
+Mỗi lượt dùng `.agents/workflow-runs/<run-id>/` với tên `<YYYYMMDD-HHMM>-validate-harness-<scope>`:
 
 | Tệp | Nội dung | Bên ghi chính |
 |---|---|---|
@@ -149,7 +151,7 @@ Vai trò không mặc định là một tác nhân. Khi chạy phải dùng `$wo
 
 **Chủ trì:** Điều phối viên và Người phân tích bằng chứng
 
-Tạo run id và sổ; ghi mệnh đề, kỳ vọng, quan sát, nguồn, môi trường, bằng chứng phản bác, mức `Low`/`Medium`/`High`/`Critical`, trigger, mode, authority và dữ liệu cấm. Định tuyến hoặc đóng `No change` nếu không đủ trigger.
+Tạo run id và sổ; chuẩn hóa candidate, ghi mệnh đề, kỳ vọng, quan sát, nguồn, môi trường, bằng chứng phản bác, mức `Low`/`Medium`/`High`/`Critical`, trigger, mode, authority và dữ liệu cấm. Trả lại `$harness-improvement-discovery`, định tuyến hoặc đóng `No change` nếu đầu vào vẫn là yêu cầu khám phá mở hay không đủ trigger.
 
 **Điều kiện ra:** vấn đề, mode, phạm vi điều tra và quyền quyết định đã rõ.
 
