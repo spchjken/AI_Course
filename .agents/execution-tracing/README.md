@@ -39,6 +39,6 @@ Recorder từ chối symlink, junction, reparse point và multi-link write targe
 ## Giới hạn dữ liệu
 
 - Summary tối đa 500 ký tự, được chuẩn hóa thành một dòng và bị chặn khi giống secret phổ biến.
-- Ref chỉ là path tương đối trong repo hoặc URL HTTP(S) không có credentials, query hay fragment.
+- Ref chỉ là path tương đối dùng dấu `/` hoặc URL HTTP(S) không có credentials, query, fragment hay khoảng trắng; recorder và validator chỉ chấp nhận dạng canonical mà schema công bố.
 - Recorder không đọc nội dung của ref, không thu environment và không có field cho raw prompt hoặc reasoning.
 - `skill_sha256` ghi đúng phiên bản instruction đã dùng; thay đổi skill sau đó không viết lại trace cũ.

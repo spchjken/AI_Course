@@ -138,3 +138,53 @@ Không có hồi quy trong no-platform-hook/expected-roster limitation.
 ### STE-007 — `Pending final handoff`
 
 Đây không còn là implementation finding: orchestration đã ghi các corrective work unit và trace refs. Sau một reviewer `Pass`, Điều phối viên vẫn phải ghi SHA candidate/final review, đóng workflow trace, tái sinh index, chạy `validate_index.py`/`sync_index.py --check`, rồi mới trình ratification. Trạng thái open/stale hiện tại được kỳ vọng trong khi review chưa kết thúc.
+
+---
+
+## Re-review — candidate `20ab1c9`
+
+### STE-001 — `Resolved`
+
+Không có hồi quy hardlink/junction/reparse/path-containment. Toàn bộ 17 test đạt, bao gồm hardlink ngoài repo không đổi và hai Windows junction fixtures.
+
+### STE-002 — `Unresolved / Major`
+
+Candidate đã sửa đúng các case được nêu gần nhất: manifest/event schemas và validator đều từ chối `ftp://example.com/x`, `..\\outside.md`, URL có credentials/query, `../outside.md` trong event và slug `../run`; `seq` bool/float vẫn bị từ chối.
+
+Nhưng machine-readable schema và validator vẫn không tương đương hai chiều:
+
+- `start --input-ref "https://example.com/a b"` và `event --ref "https://example.com/c d"` được recorder chấp nhận và lưu nguyên. `validate_trace` trả `valid: true`, trong khi chính `schema_accepts` helper của candidate trả `false` cho manifest và event tương ứng vì schema cấm whitespace.
+- Manifest tampered với stored ref `docs\\file.md` được validator nhận vì `normalize_ref` chuẩn hóa nhưng validator không so giá trị canonical trở lại; manifest schema từ chối backslash.
+- Manifest/started event dùng timezone tương đương `+00:00` được `parse_timestamp` nhận và lifecycle vẫn hợp lệ, trong khi schema chỉ nhận dạng `...Z` chính xác.
+
+Trường hợp đầu tiên không chỉ là tampering: CLI hiện có thể tự sinh trace vi phạm schema được commit nhưng validator gọi hợp lệ. Điều này trái trial metric “schema/lifecycle validation” và README mô tả hai schema là shape máy đọc được.
+
+**Điều kiện đóng:** dùng cùng grammar/canonicalization ở recorder, validator và schemas; hoặc validator phải từ chối artifact không canonical mà schema từ chối. Thêm matrix hai chiều, gồm mọi input CLI chấp nhận và timestamp/ref artifacts mà validator nhận.
+
+### STE-003 — `Resolved`
+
+Không có hồi quy privacy/aggregate. Invalid trace không cung cấp dimension; summary/ref không xuất vào aggregate; raw traces vẫn ignored và excluded khỏi derived index.
+
+### STE-004 — `Unresolved / Major`
+
+Subprocess concurrency coverage nay là process thật và đã tái hiện độc lập ở tải cao. Matrix test mới cũng khóa đúng các unsafe ref/slug đã biết. Tuy nhiên `test_committed_schemas_accept_generated_data_and_reject_type_tampering` vẫn là kiểm tra một chiều đối với ref: nó chỉ khẳng định schema từ chối bốn bad inputs, không khẳng định schema và validator nhận cùng tập artifacts.
+
+Fixture CLI-generated URL có khoảng trắng cho thấy một completed trace có thể được validator tính valid nhưng vi phạm schema. Vì fixed comparison vẫn báo `6/6` và `100% completed fixture trace validity`, coverage chưa đủ để hỗ trợ claim khi `STE-002` còn tái hiện trực tiếp.
+
+**Điều kiện đóng:** thêm two-way/property matrix hoặc một tập parity fixture đầy đủ cho refs/timestamps/canonicalization; report chỉ giữ `6/6` sau khi trace do mọi accepted CLI path sinh ra đạt cả schemas và lifecycle validator.
+
+### STE-005 — `Resolved` cho implementation hiện tại; `Minor` migration follow-up
+
+Lock-directory loại bỏ race Windows cũ. Tám vòng độc lập, mỗi vòng 24 subprocess cùng ghi một trace, đều có 24/24 command success, đúng 24 summary duy nhất, sequence `1..25`, không orphan `.append.lock` và validator hợp lệ. Các stale directory empty, owner empty/malformed, dead owner và extra regular metadata đều được thu hồi. Hai lượt 12 subprocess đồng thời tranh thu hồi empty/malformed stale directory cũng đạt exactly-once và không để lock.
+
+Một hạn chế migration còn lại: nếu candidate `f416cc0` bị crash và để `.append.lock` dạng **file**, `20ab1c9` xem path tồn tại nhưng `release_lock` gọi `iterdir()`, gây `NotADirectoryError [WinError 267]`; lock cũ tồn tại và append không tiến hành. Đây là edge của chuyển đổi giữa hai candidate trial, không phải race/event-loss hiện hành, nên xếp `Minor`.
+
+**Điều kiện follow-up:** nhận diện stale legacy lock-file và thu hồi theo protocol cũ một cách an toàn, hoặc ghi rõ trial migration/cleanup có kiểm soát trước ratification.
+
+### STE-006 — `Resolved`
+
+Không có hồi quy no-platform-hook limitation, expected roster hay trạng thái portable export local/ignored.
+
+### STE-007 — `Pending final handoff`
+
+Không phải implementation finding. Candidate SHA, final reviewer row, workflow trace closure và index regeneration phải thực hiện sau khi không còn Blocker/Major. Index stale và trace open trong lượt review này là trạng thái vòng đời dự kiến, không được dùng để che hay khuếch đại verdict code.

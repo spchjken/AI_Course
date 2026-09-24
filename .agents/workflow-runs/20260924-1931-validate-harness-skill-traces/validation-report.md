@@ -7,6 +7,8 @@
 - **First corrected candidate:** re-review remained `Fail` after finding hardlink, sequence typing and contention gaps.
 - **Second corrected candidate:** final re-review remained `Fail` because schema refs diverged and real Windows processes exposed a lock-file sharing race.
 - **Third corrected candidate:** `6/6` fixed scenarios pass across 17 direct tests, including 12 concurrent subprocess writers; final independent re-review remains required.
+- **Third re-review:** process locking passed 192/192 adversarial writes, but schema parity remained `Fail`.
+- **Fourth corrected candidate:** the same 17 tests now apply invalid ref, slug and timestamp fixtures to both schemas and validator, plus stale legacy-lock migration; final independent re-review remains required.
 
 ## Fixed scenarios
 

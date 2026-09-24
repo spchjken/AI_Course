@@ -205,3 +205,71 @@ Root `.gitignore` vẫn không thuộc candidate diff; raw traces vẫn bị nes
 1. Làm cho manifest/event schema từ chối cùng ref/slug/timestamp mà validator từ chối; thêm adversarial parity matrix hai chiều, không chỉ generated-data/type smoke test.
 2. Sửa Windows cross-process lock để waiter không giữ file handle chặn owner unlink; command không được báo lỗi sau khi event đã commit. Thêm subprocess fixture lặp lại đủ để bắt race và xác nhận mọi command outcome khớp đúng một event.
 3. Chỉ khôi phục claim `6/6` khi hai finding trên đóng. Sau reviewer `Pass`, Điều phối viên mới hoàn tất `STE-007`, tái sinh index và mở ratification gate.
+
+---
+
+## Re-review candidate `20ab1c9`
+
+- **Ngày:** 2026-09-25
+- **Candidate:** `20ab1c9` (`Make skill trace locking process safe`)
+- **Phán quyết:** `Fail`
+- **Finding chặn:** `STE-002` và `STE-004` còn `Major`. Race đa tiến trình của `STE-005` đã đóng; còn một hạn chế migration `Minor` với lock-file do candidate trước để lại. `STE-007` vẫn là công việc vòng đời final handoff, không phải lỗi implementation.
+
+### Kết quả theo finding
+
+| Finding | Re-review `20ab1c9` | Bằng chứng |
+|---|---|---|
+| `STE-001` | `Resolved` | 17/17 tests tiếp tục đạt, gồm junction và hardlink; hardlink target ngoài không bị ghi. Không có hồi quy path-containment đã đóng. |
+| `STE-002` | `Unresolved — Major` | Các case yêu cầu `ftp`, `..\\outside.md`, URL credentials/query, `../outside.md` trong event và slug `../run` nay đều bị schema lẫn validator từ chối. Tuy nhiên parity hai chiều vẫn sai: recorder chấp nhận và lưu nguyên `https://example.com/a b` trong manifest/event; validator trả `valid: true`, còn cả schema trả `false`. Manifest đã chỉnh thành `docs\\file.md` và timestamp `+00:00` cũng được validator nhận nhưng schema từ chối. Một trace do chính CLI tạo có thể vì vậy “valid” theo validator nhưng invalid theo machine-readable contract. |
+| `STE-003` | `Resolved` | Invalid dimensions/privacy test tiếp tục đạt; aggregate không xuất summary/ref hay marker từ trace invalid. Raw runtime vẫn ignored và excluded khỏi index. |
+| `STE-004` | `Unresolved — Major` | Test mới đã thêm subprocess writer thật và matrix các unsafe ref đã nêu, nhưng schema test vẫn một chiều: chỉ assert schema từ chối bốn input, không chứng minh mọi trace validator nhận cũng khớp schema. Fixture URL có khoảng trắng tái hiện trace CLI-generated mà report `6/6` gọi hợp lệ dù schema không nhận. Vì primary metric yêu cầu schema/lifecycle validity, claim `6/6` vẫn vượt bằng chứng. |
+| `STE-005` | `Resolved` cho lock-directory hiện tại; `Minor` migration | 8 vòng độc lập × 24 Windows subprocess đều đạt: 192/192 command success, mỗi vòng đúng 24 note duy nhất, sequence liên tục, trace valid và không orphan lock. Empty/malformed/dead-owner/extra-regular stale lock-directory đều phục hồi; hai fixture 12-process tranh phục hồi cũng đạt exactly-once. Tuy nhiên stale `.append.lock` **file** từ `f416cc0` gây `NotADirectoryError [WinError 267]` và không được thu hồi sau đổi format; đây là khoảng trống migration của trial, không tái hiện race hiện hành. |
+| `STE-006` | `Resolved` | No-platform-hook/expected-roster limitation và portable guidance không hồi quy. |
+| `STE-007` | `Pending final handoff — không phải lỗi implementation` | Workflow trace đang mở, SHA corrective/final review và derived index refresh chỉ nên hoàn tất sau review. `validate_index.py` hiện chỉ báo 7 stale sources, đúng với trạng thái candidate/reviewer chưa bàn giao. |
+
+### Phép kiểm tra độc lập
+
+```text
+python -X utf8 -m unittest discover -s .agents/execution-tracing/tests -v
+=> 17/17 pass, gồm Windows junction, hardlink và subprocess writers
+
+python -X utf8 .agents/skills/repo-skill-creator/scripts/quick_validate.py <affected-skill>
+=> 3/3 pass
+
+python -X utf8 -m unittest discover -s .agents/indexing/tests -v
+=> 8/8 pass
+
+python -X utf8 .agents/execution-tracing/skill_trace.py validate --all
+=> 2/2 valid; 1 closed, workflow trace open dưới 24 giờ; exit 0
+
+Required ref/slug matrix
+=> ftp, backslash traversal, credentials, query, ../ event ref và ../ slug: schema=false, validator=false
+
+Extended two-way schema matrix
+=> FAIL: URL có khoảng trắng do CLI tạo, stored backslash ref và +00:00 timestamps đều validator=true/schema=false
+
+8 rounds × 24 real Windows subprocess writers
+=> 192/192 success; exactly 192 unique notes; contiguous seq; 0 orphan locks; 8/8 valid traces
+
+Stale/partial lock-directory fixtures
+=> empty, empty owner, malformed owner, dead owner, extra regular file: recovered; prefix retained; trace valid
+=> 12-process simultaneous recovery from empty/malformed stale directories: all success, exactly-once, no orphan lock
+
+Legacy stale lock-file fixture from previous candidate
+=> NotADirectoryError [WinError 267]; lock file remains; events unchanged
+
+python -X utf8 .agents/indexing/validate_index.py
+=> schema valid; 7 stale sources; exit 1 (final-handoff state)
+
+python -X utf8 .agents/indexing/sync_index.py --check
+=> exit 1 (final-handoff state)
+```
+
+Root `.gitignore` vẫn là thay đổi có sẵn của người dùng và không thuộc candidate diff. Quét pattern chỉ thấy token giả trong negative test. Không có file implementation nào bị reviewer sửa.
+
+### Điều kiện đóng còn lại
+
+1. Đồng bộ grammar mà validator và hai schema chấp nhận, ít nhất với URL whitespace, stored backslash ref và timestamp syntax; test phải kiểm **hai chiều**, gồm trace thực do CLI tạo từ mọi input được chấp nhận.
+2. Chỉ giữ claim `6/6` sau khi fixture trên chứng minh mọi completed trace được validator nhận cũng được schemas nhận.
+3. Xử lý hoặc tài liệu hóa migration cho stale lock-file từ candidate trước; đây là `Minor`, không phải finding chặn độc lập.
+4. Sau reviewer `Pass`, mới thực hiện các bước `STE-007`: ghi SHA/review row, đóng workflow trace, tái sinh và kiểm index, rồi trình ratification.

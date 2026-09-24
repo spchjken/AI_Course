@@ -7,7 +7,8 @@
 - **Initial evidence commit:** `cd811a4d8ff8fb6d0374d16985d6f13f60758f63`
 - **Corrective commit after first review:** `956e742a81a6d3e0ee63c481f75545809ea1aa3b`
 - **Second corrective commit:** `f416cc0`
-- **Third corrective commit:** pending
+- **Third corrective commit:** `20ab1c9`
+- **Fourth corrective commit:** pending
 
 ## Implemented
 
@@ -26,6 +27,7 @@
 - Independent review rejected the first candidate with `STE-001`–`STE-007`. All findings were accepted. The correction rejects Windows junction/reparse writes, enforces exact schema/lifecycle invariants, excludes invalid dimensions from aggregate output, adds guarded stale-lock recovery and expands direct tests from 7 to 13.
 - Re-review reopened hardlink safety, boolean sequence typing, schema parity, concurrent append and malformed-lock recovery. The second correction adds handle-level hardlink rejection, exact integer checks, a machine-readable event schema, schema parity fixtures, 30-second bounded contention retry with in-process serialization, and stale malformed-lock recovery.
 - The next re-review found schema ref/slug drift and a Windows sharing race caused by contenders reading an active lock file. The third correction uses an atomic lock-directory, delays metadata reads until stale, adds true multi-process append verification, and applies the same safe ref grammar to manifest and event schemas.
+- The following re-review confirmed 192/192 process writes but found validator-accepted noncanonical refs/timestamps and a legacy lock-file migration case. The fourth correction makes validator and schemas share canonical ref/timestamp acceptance, exercises rejection in both directions, and reclaims stale legacy lock files.
 
 ## Self-check boundaries
 

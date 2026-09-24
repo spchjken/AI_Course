@@ -3,7 +3,7 @@
   "$id": "https://example.invalid/ai-course/skill-trace.schema.json",
   "title": "Repository-local skill execution trace manifest",
   "$defs": {
-    "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
     "summary": { "type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S" },
     "slug": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" },
     "ref": {
@@ -11,7 +11,7 @@
       "minLength": 1,
       "anyOf": [
         { "pattern": "^https?://[^/?#@\\s]+(?:/[^?#\\s]*)?$" },
-        { "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/|\\\\|[A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\r\\n]+$" }
+        { "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/|\\\\|[A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\s]+$" }
       ]
     }
   },

@@ -120,6 +120,10 @@ def normalize_ref(value: str, root: Path) -> str:
     raw = value.strip()
     if not raw:
         raise TraceError("reference must not be empty")
+    if raw != value or any(character.isspace() for character in raw):
+        raise TraceError("reference must not contain leading, trailing or embedded whitespace")
+    if "\\" in raw:
+        raise TraceError("reference must use forward slashes")
     parsed = urlsplit(raw)
     if parsed.scheme:
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
@@ -128,7 +132,7 @@ def normalize_ref(value: str, root: Path) -> str:
             raise TraceError("external URL must not contain credentials, query or fragment")
         return raw
 
-    normalized = raw.replace("\\", "/")
+    normalized = raw
     posix = PurePosixPath(normalized)
     windows = PureWindowsPath(raw)
     if posix.is_absolute() or windows.is_absolute() or windows.drive or ".." in posix.parts:
@@ -281,6 +285,20 @@ def acquire_lock(lock: Path, stale_seconds: int = 300, wait_seconds: float = 30.
                 if not lock.exists():
                     continue
                 raise
+            if lock.is_file():
+                if file_age > stale_seconds:
+                    try:
+                        metadata = read_json(lock)
+                        owner_dead = not process_alive(int(metadata.get("pid", -1)))
+                    except (TraceError, TypeError, ValueError):
+                        owner_dead = True
+                    if owner_dead:
+                        lock.unlink()
+                        continue
+                if time.monotonic() < deadline:
+                    time.sleep(0.01)
+                    continue
+                raise TraceError("trace is currently locked by a legacy writer") from exc
             if file_age > stale_seconds:
                 try:
                     metadata = read_json(lock / "owner.json")
@@ -298,6 +316,10 @@ def acquire_lock(lock: Path, stale_seconds: int = 300, wait_seconds: float = 30.
 
 def release_lock(lock: Path) -> None:
     try:
+        if lock.is_file():
+            reject_link_or_reparse(lock, "legacy append lock")
+            lock.unlink()
+            return
         for child in lock.iterdir():
             reject_link_or_reparse(child, "append lock metadata")
             if not child.is_file():
@@ -393,6 +415,8 @@ def finish_trace(args: argparse.Namespace) -> dict:
 def parse_timestamp(value: object, field: str) -> datetime:
     if not isinstance(value, str):
         raise TraceError(f"{field} must be a timestamp string")
+    if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", value):
+        raise TraceError(f"timestamp in {field} must use canonical UTC seconds ending in Z")
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:

@@ -242,13 +242,32 @@ class SkillTraceTests(unittest.TestCase):
             self.assertFalse(schema_accepts(tampered, event_schema, event_schema))
         tampered_manifest = dict(manifest, request_summary=7)
         self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
-        for bad_ref in ("ftp://example.com/file", r"..\outside.md", "https://user:pass@example.com/file", "https://example.com/file?q=1"):
+        for bad_ref in ("ftp://example.com/file", r"..\outside.md", "https://user:pass@example.com/file", "https://example.com/file?q=1", "https://example.com/a b", "folder name/file.md"):
             tampered_manifest = dict(manifest, input_refs=[bad_ref])
             self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema), bad_ref)
+            (directory / "manifest.json").write_text(json.dumps(tampered_manifest), encoding="utf-8")
+            self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"], bad_ref)
+            (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
             tampered_event = dict(events[0], refs=[bad_ref])
             self.assertFalse(schema_accepts(tampered_event, event_schema, event_schema), bad_ref)
+            (directory / "events.jsonl").write_text(json.dumps(tampered_event) + "\n", encoding="utf-8")
+            self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"], bad_ref)
+            (directory / "events.jsonl").write_text(json.dumps(events[0]) + "\n", encoding="utf-8")
         tampered_manifest = dict(manifest, parent_workflow_run="../outside")
         self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
+        (directory / "manifest.json").write_text(json.dumps(tampered_manifest), encoding="utf-8")
+        self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"])
+        (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        for bad_timestamp in (manifest["started_at"].replace("Z", "+00:00"),):
+            tampered_manifest = dict(manifest, started_at=bad_timestamp)
+            self.assertFalse(schema_accepts(tampered_manifest, manifest_schema, manifest_schema))
+            (directory / "manifest.json").write_text(json.dumps(tampered_manifest), encoding="utf-8")
+            self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"])
+            (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            tampered_event = dict(events[0], at=bad_timestamp)
+            self.assertFalse(schema_accepts(tampered_event, event_schema, event_schema))
+            (directory / "events.jsonl").write_text(json.dumps(tampered_event) + "\n", encoding="utf-8")
+            self.assertFalse(skill_trace.validate_trace(directory, self.root, 24)["valid"])
 
     def test_invalid_trace_dimensions_never_reach_aggregate(self) -> None:
         marker = "PRIVATE_MARKER_DO_NOT_EXPORT"
@@ -277,6 +296,10 @@ class SkillTraceTests(unittest.TestCase):
         (lock / "owner.json").write_text("", encoding="utf-8")
         os.utime(lock, (0, 0))
         skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="recovered malformed", ref=[]))
+        lock.write_text(json.dumps({"pid": 2147483647, "created": 0}), encoding="utf-8")
+        os.utime(lock, (0, 0))
+        skill_trace.record_event(argparse.Namespace(root=str(self.root), trace=started["trace_path"], type="note", summary="recovered legacy", ref=[]))
+        self.assertFalse(lock.exists())
 
     def test_concurrent_writers_are_serialized_without_event_loss(self) -> None:
         started = skill_trace.create_trace(self.start_args())
